@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+    :root {
+  --investors-primary-color: var(--bs-primary, #0d6efd);
+  --investors-secondary-color: var(--bs-secondary, #084c4c);
+  --investors-card-border-radius: 1rem;
+}
+    
+    .investor-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--investors-card-border-radius);
+  background: #787777;
+}
+
+.investor-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.investor-card:hover .investor-card__image {
+  transform: scale(1.05);
+}
+
+.investor-card__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  border-radius: var(--investors-card-border-radius);
+  background-color: var(--investors-secondary-color);
+  /* Overlay transition for smooth hover effect */
+  transition: 
+    background-color 0.3s ease-in-out,
+    transform 0.3s ease-in-out,
+    bottom 0.3s ease-in-out;
+}
+
+/* Hover state for the overlay */
+.investor-card:hover .investor-card__overlay {
+  /* Highlight overlay on hover */
+  background-color: var(--investors-primary-color);
+  transform: scale(0.95);
+  bottom: 10px;
+}
+
+.investor-card__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.investor-card__title {
+  color: var(--bs-light, #fff);
+}
+
+.investor-card__arrow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 72px;
+  height: 48px;
+  border-radius: 30px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--bs-light, #fff);
+  transition: background-color 0.3s ease-in-out, transform 0.3s ease;
+  font-size: 1.5rem;
+}
+
+.investor-card:hover .investor-card__arrow-btn {
+  background-color: var(--bs-light, #fff);
+  color: var(--investors-primary-color);
+}
+
+.investors-carousel-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.investors-carousel-nav .nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--investors-secondary-color);
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--bs-body-color);
+  transition: all 0.3s ease;
+}
+
+.investors-carousel-nav .nav-button:hover {
+  background-color: var(--investors-secondary-color);
+  color: var(--bs-white);
+}
+
+.investors-carousel-nav .nav-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.investors-carousel-nav .nav-dots .gsap-carousel-dot {
+  background: var(--bs-gray-300, #dee2e6);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.investors-carousel-nav .nav-dots .gsap-carousel-dot.active {
+  background: var(--investors-secondary-color);
+}
+
+container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+section {
+  padding: 2rem 3rem;
+}
+
+</style>
+</head>
+<body>
+    <section id="investors-carousel-section" aria-labelledby="investors-heading">
+  <div class="container">
+    <!-- Section Header -->
+    <div
+      class="investors-carousel-header mb-5 d-flex justify-content-between align-items-center flex-column flex-md-row">
+      <h2 id="investors-heading" class="mb-0 h1" style="color: var(--investors-primary-color);">Investors</h2>
+
+      <!-- Custom Carousel Navigation -->
+      <div class="investors-carousel-nav">
+        <button id="investors-carousel-prev" type="button" class="nav-button" aria-label="Previous slide">
+          ← </button>
+        <span class="nav-dots"></span>
+        <button id="investors-carousel-next" type="button" class="nav-button active" aria-label="Next slide">
+          → </button>
+      </div>
+
+      
+    </div>
+
+    <!-- Owl Carousel -->
+    <!-- <div id="investors-owl-carousel" class="owl-carousel owl-theme"> -->
+    <div id="investors-carousel">
+      <!-- Card 1: Leadership -->
+      <article class="investor-card">
+        <a href="#leadership" class="investor-card__link" aria-label="Read more about Leadership">
+          <img src="https://placehold.co/600x400/343a40/ffffff?text=Leadership"
+            alt="A group of executives in a meeting discussing leadership strategy." class="investor-card__image"
+            loading="lazy">
+          <div class="investor-card__overlay">
+            <div class="investor-card__content">
+              <h4 class="investor-card__title">Leadership</h3>
+                <span class="investor-card__arrow-btn">
+                  ↗
+                </span>
+            </div>
+          </div>
+        </a>
+      </article>
+
+      <!-- Card 2: Corporate Governance (simulates hover state) -->
+      <article class="investor-card">
+        <a href="#governance" class="investor-card__link" aria-label="Read more about Corporate Governance">
+          <img src="https://placehold.co/600x400/6c757d/ffffff?text=Governance"
+            alt="A person signing a corporate governance document." class="investor-card__image" loading="lazy">
+          <div class="investor-card__overlay">
+            <div class="investor-card__content">
+              <h4 class="investor-card__title">Corporate Governance</h3>
+                <span class="investor-card__arrow-btn">
+                  ↗
+                </span>
+            </div>
+          </div>
+        </a>
+      </article>
+
+      <!-- Card 3: Recent News -->
+      <article class="investor-card">
+        <a href="#news" class="investor-card__link" aria-label="Read more about Recent News">
+          <img src="https://placehold.co/600x400/495057/ffffff?text=News"
+            alt="A professional analyzing financial charts on a tablet." class="investor-card__image" loading="lazy">
+          <div class="investor-card__overlay">
+            <div class="investor-card__content">
+              <h4 class="investor-card__title">Recent News</h3>
+                <span class="investor-card__arrow-btn">
+                  ↗
+                </span>
+            </div>
+          </div>
+        </a>
+      </article>
+      <!-- Card 4: Recent News -->
+      <article class="investor-card">
+        <a href="#news" class="investor-card__link" aria-label="Read more about Recent News">
+          <img src="https://placehold.co/600x400/495057/ffffff?text=News"
+            alt="A professional analyzing financial charts on a tablet." class="investor-card__image" loading="lazy">
+          <div class="investor-card__overlay">
+            <div class="investor-card__content">
+              <h4 class="investor-card__title">Recent News</h3>
+                <span class="investor-card__arrow-btn">
+                  ↗
+                </span>
+            </div>
+          </div>
+        </a>
+      </article>
+    </div>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/InertiaPlugin.min.js"
+  integrity="sha512-PEhxb+AivyFXL3zZnE/TwS4sgWRDZRF7aTGVGkiF7ej++sMKTtN+ZfrEo8lPxrfMIOws/1RkVc1Apua29ktRwg=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="GSAP.carousel.js"></script>
+
+<script>  // --- GSAP Carousel Setup for Investors Section ---
+  const investorsCarousel_tl = horizontalLoop("#investors-carousel", {
+    // speed: 15,
+    speed: 5,
+    delay: 1,
+    paused: true,
+    repeat: -1,
+    // snap: true,
+    // delayOnChange: 2000,
+    draggable: true,
+    navigation: true,
+    dots: true,
+    dotsContainer: ".nav-dots",
+    nextNav: "#investors-carousel-next",
+    prevNav: "#investors-carousel-prev",
+    gap: "20px",
+    responsive: {
+      0: { items: 1 },
+      768: { items: 2 },
+      992: { items: 3 },
+    },
+    // onChange: () => {
+    //   // Custom logic for when the carousel changes
+    //   console.log("Carousel changed");
+    // },
+  });</script>
+</body>
+</html>

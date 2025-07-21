@@ -1,0 +1,547 @@
+/*
+This helper function makes a group of elements animate along the x-axis in a seamless, responsive loop.
+
+Features:
+ - Uses xPercent so that even if the widths change (like if the window gets resized), it should still work in most cases.
+ - When each item animates to the left or right enough, it will loop back to the other side
+ - Optionally pass in a config object with values like draggable: true, center: true, speed (default: 1, which travels at roughly 100 pixels per second), paused (boolean), repeat, reversed, and paddingRight.
+ - The returned timeline will have the following methods added to it:
+   - next() - animates to the next element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
+   - previous() - animates to the previous element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
+   - toIndex() - pass in a zero-based index value of the element that it should animate to, and optionally pass in a vars object to control duration, easing, etc. Always goes in the shortest direction
+   - current() - returns the current index (if an animation is in-progress, it reflects the final index)
+   - times - an Array of the times on the timeline where each element hits the "starting" spot.
+ */
+function horizontalLoop(itemsContainer, config) {
+  // Resolve container (selector string or DOM element)
+  const container =
+    typeof itemsContainer === "string"
+      ? document.querySelector(itemsContainer)
+      : itemsContainer;
+
+  if (!container) {
+    throw new Error(`horizontalLoop: container "${itemsContainer}" not found`);
+  }
+  let timeline;
+  items = gsap.utils.toArray(container.children);
+  const responsive = config.responsive || 1;
+
+  // Added responsive styling support
+  if (responsive) {
+    const updateResponsiveStyles = () => {
+      const breakpoints = Object.keys(config.responsive)
+        .map(Number)
+        .sort((a, b) => a - b);
+      let itemsPerRow = config.responsive[breakpoints[0]].items || 1;
+      const gap = config.gap || "0px";
+      for (let bp of breakpoints) {
+        if (window.innerWidth >= bp) {
+          itemsPerRow = config.responsive[bp].items;
+        }
+      }
+      container.style.setProperty("--items-per-row", itemsPerRow);
+      container.style.setProperty("--gap", gap);
+      container.style.display = "flex";
+      container.style.gap = "var(--gap)";
+      container.style.overflowX = "hidden";
+      items.forEach((child) => {
+        child.style.flex =
+          "0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)))";
+      });
+    };
+    updateResponsiveStyles();
+    window.addEventListener("resize", updateResponsiveStyles);
+    // Store for cleanup
+    config._updateResponsiveStyles = updateResponsiveStyles;
+  }
+  config = config || {};
+  gsap.context(() => {
+    // use a context so that if this is called from within another context or a gsap.matchMedia(), we can perform proper cleanup like the "resize" event handler on the window
+    let onChange = config.onChange,
+      lastIndex = 0,
+      tl = gsap.timeline({
+        repeat: config.repeat,
+        onUpdate:
+          onChange &&
+          function (self) {
+            console.log("onUpdate called", self);
+            let i = tl.closestIndex();
+            if (lastIndex !== i) {
+              lastIndex = i;
+              onChange(items[i], i);
+            }
+
+            // New: if delayOnChange is set and timeline isn't paused,
+            // pause the animation and resume after the specified delay.
+            // if (!config.paused && config.delayOnChange) {
+            //   tl.pause();
+            //   setTimeout(() => {
+            //     tl.play();
+            //   }, config.delayOnChange);
+            // }
+          },
+        paused: config.paused,
+        defaults: { ease: "none" },
+        onReverseComplete: () =>
+          tl.totalTime(tl.rawTime() + tl.duration() * 100),
+      }),
+      length = items.length,
+      startX = items[0].offsetLeft,
+      times = [],
+      widths = [],
+      spaceBefore = [],
+      xPercents = [],
+      curIndex = 0,
+      indexIsDirty = false,
+      center = config.center,
+      pixelsPerSecond = (config.speed || 1) * 100,
+      snap =
+        config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1),
+      timeOffset = 0,
+      container =
+        center === true
+          ? items[0].parentNode
+          : gsap.utils.toArray(center)[0] || items[0].parentNode,
+      totalWidth,
+      getTotalWidth = () =>
+        items[length - 1].offsetLeft +
+        (xPercents[length - 1] / 100) * widths[length - 1] -
+        startX +
+        spaceBefore[0] +
+        items[length - 1].offsetWidth *
+          gsap.getProperty(items[length - 1], "scaleX") +
+        (parseFloat(config.gap) || 0),
+      populateWidths = () => {
+        let b1 = container.getBoundingClientRect(),
+          b2;
+        items.forEach((el, i) => {
+          widths[i] = parseFloat(gsap.getProperty(el, "width", "px"));
+          xPercents[i] = snap(
+            (parseFloat(gsap.getProperty(el, "x", "px")) / widths[i]) * 100 +
+              gsap.getProperty(el, "xPercent")
+          );
+          b2 = el.getBoundingClientRect();
+          spaceBefore[i] = b2.left - (i ? b1.right : b1.left);
+          b1 = b2;
+        });
+        gsap.set(items, {
+          xPercent: (i) => xPercents[i],
+        });
+        totalWidth = getTotalWidth();
+      },
+      timeWrap,
+      populateOffsets = () => {
+        timeOffset = center
+          ? (tl.duration() * (container.offsetWidth / 2)) / totalWidth
+          : 0;
+        center &&
+          times.forEach((t, i) => {
+            times[i] = timeWrap(
+              tl.labels["label" + i] +
+                (tl.duration() * widths[i]) / 2 / totalWidth -
+                timeOffset
+            );
+          });
+      },
+      getClosest = (values, value, wrap) => {
+        let i = values.length,
+          closest = 1e10,
+          index = 0,
+          d;
+        while (i--) {
+          d = Math.abs(values[i] - value);
+          if (d > wrap / 2) {
+            d = wrap - d;
+          }
+          if (d < closest) {
+            closest = d;
+            index = i;
+          }
+        }
+        return index;
+      },
+      populateTimeline = () => {
+        let i, item, curX, distanceToStart, distanceToLoop;
+        tl.clear();
+        for (i = 0; i < length; i++) {
+          item = items[i];
+          curX = (xPercents[i] / 100) * widths[i];
+          distanceToStart = item.offsetLeft + curX - startX + spaceBefore[0];
+          distanceToLoop =
+            distanceToStart + widths[i] * gsap.getProperty(item, "scaleX");
+          tl.to(
+            item,
+            {
+              xPercent: snap(((curX - distanceToLoop) / widths[i]) * 100),
+              duration: distanceToLoop / pixelsPerSecond,
+            },
+            0
+          )
+            .fromTo(
+              item,
+              {
+                xPercent: snap(
+                  ((curX - distanceToLoop + totalWidth) / widths[i]) * 100
+                ),
+              },
+              {
+                xPercent: xPercents[i],
+                duration:
+                  (curX - distanceToLoop + totalWidth - curX) / pixelsPerSecond,
+                immediateRender: false,
+              },
+              distanceToLoop / pixelsPerSecond
+            )
+            .add("label" + i, distanceToStart / pixelsPerSecond);
+          times[i] = distanceToStart / pixelsPerSecond;
+        }
+        timeWrap = gsap.utils.wrap(0, tl.duration());
+      },
+      refresh = (deep) => {
+        let progress = tl.progress();
+        tl.progress(0, true);
+        populateWidths();
+        deep && populateTimeline();
+        populateOffsets();
+        deep && tl.draggable && tl.paused()
+          ? tl.time(times[curIndex], true)
+          : tl.progress(progress, true);
+      },
+      onResize = () => refresh(true),
+      proxy;
+    gsap.set(items, { x: 0 });
+    populateWidths();
+    populateTimeline();
+    populateOffsets();
+    window.addEventListener("resize", onResize);
+
+    // Helper: debounce for resize
+    function debounce(fn, delay) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+    window.removeEventListener("resize", onResize);
+    window.addEventListener("resize", debounce(onResize, 100));
+
+    function toIndex(index, vars) {
+      vars = vars || {};
+      Math.abs(index - curIndex) > length / 2 &&
+        (index += index > curIndex ? -length : length);
+      let newIndex = gsap.utils.wrap(0, length, index),
+        time = times[newIndex];
+      if (time > tl.time() !== index > curIndex && index !== curIndex) {
+        time += tl.duration() * (index > curIndex ? 1 : -1);
+      }
+      if (time < 0 || time > tl.duration()) {
+        vars.modifiers = { time: timeWrap };
+      }
+      curIndex = newIndex;
+      vars.overwrite = true;
+      gsap.killTweensOf(proxy);
+      return vars.duration === 0
+        ? tl.time(timeWrap(time))
+        : tl.tweenTo(time, vars);
+    }
+    tl.toIndex = (index, vars) => toIndex(index, vars);
+    tl.closestIndex = (setCurrent) => {
+      let index = getClosest(times, tl.time(), tl.duration());
+      if (setCurrent) {
+        curIndex = index;
+        indexIsDirty = false;
+      }
+      return index;
+    };
+    tl.current = () => (indexIsDirty ? tl.closestIndex(true) : curIndex);
+    tl.next = (vars) => toIndex(tl.current() + 1, vars);
+    tl.previous = (vars) => toIndex(tl.current() - 1, vars);
+    tl.times = times;
+    tl.progress(1, true).progress(0, true);
+    if (config.reversed) {
+      tl.vars.onReverseComplete();
+      tl.reverse();
+    }
+    if (config.draggable && typeof Draggable === "function") {
+      proxy = document.createElement("div");
+      let wrap = gsap.utils.wrap(0, 1),
+        ratio,
+        startProgress,
+        draggable,
+        dragSnap,
+        lastSnap,
+        initChangeX,
+        wasPlaying,
+        align = () =>
+          tl.progress(
+            wrap(startProgress + (draggable.startX - draggable.x) * ratio)
+          ),
+        syncIndex = () => tl.closestIndex(true);
+      typeof InertiaPlugin === "undefined" &&
+        console.warn(
+          "InertiaPlugin required for momentum-based scrolling and snapping. https://greensock.com/club"
+        );
+      draggable = Draggable.create(proxy, {
+        trigger: items[0].parentNode,
+        type: "x",
+        onPressInit() {
+          let x = this.x;
+          gsap.killTweensOf(tl);
+          wasPlaying = !tl.paused();
+          tl.pause();
+          startProgress = tl.progress();
+          refresh();
+          ratio = 1 / totalWidth;
+          initChangeX = startProgress / -ratio - x;
+          gsap.set(proxy, { x: startProgress / -ratio });
+        },
+        onDrag: align,
+        onThrowUpdate: align,
+        overshootTolerance: 0,
+        inertia: true,
+        snap(value) {
+          if (Math.abs(startProgress / -ratio - this.x) < 10) {
+            return lastSnap + initChangeX;
+          }
+          let time = -(value * ratio) * tl.duration(),
+            wrappedTime = timeWrap(time),
+            snapTime = times[getClosest(times, wrappedTime, tl.duration())],
+            dif = snapTime - wrappedTime;
+          Math.abs(dif) > tl.duration() / 2 &&
+            (dif += dif < 0 ? tl.duration() : -tl.duration());
+          lastSnap = (time + dif) / tl.duration() / -ratio;
+          return lastSnap;
+        },
+        onRelease() {
+          syncIndex();
+          draggable.isThrowing && (indexIsDirty = true);
+        },
+        onThrowComplete: () => {
+          syncIndex();
+          wasPlaying && tl.play();
+        },
+      })[0];
+      tl.draggable = draggable;
+    }
+
+    // Navigation buttons
+    if (config.navigation === true) {
+      const container = items[0].parentNode;
+      let prevBtn, nextBtn, navWrapper;
+
+      // Use external selectors if provided
+      if (config.prevNav && document.querySelector(config.prevNav)) {
+        prevBtn = document.querySelector(config.prevNav);
+        prevBtn.onclick = () => tl.previous();
+      }
+      if (config.nextNav && document.querySelector(config.nextNav)) {
+        nextBtn = document.querySelector(config.nextNav);
+        nextBtn.onclick = () => tl.next();
+      }
+
+      // If not provided, create default nav
+      if (!prevBtn || !nextBtn) {
+        navWrapper = document.createElement("div");
+        navWrapper.className = "gsap-carousel-nav";
+        if (!prevBtn) {
+          prevBtn = document.createElement("button");
+          prevBtn.type = "button";
+          prevBtn.innerText = "Previous";
+          prevBtn.className = "gsap-carousel-prev";
+          prevBtn.onclick = () => tl.previous();
+          navWrapper.appendChild(prevBtn);
+        }
+        if (!nextBtn) {
+          nextBtn = document.createElement("button");
+          nextBtn.type = "button";
+          nextBtn.innerText = "Next";
+          nextBtn.className = "gsap-carousel-next";
+          nextBtn.onclick = () => tl.next();
+          navWrapper.appendChild(nextBtn);
+        }
+        if (
+          config.navigationContainer &&
+          document.querySelector(config.navigationContainer)
+        ) {
+          document
+            .querySelector(config.navigationContainer)
+            .appendChild(navWrapper);
+        } else {
+          container.parentNode.insertBefore(navWrapper, container.nextSibling);
+        }
+      }
+    }
+
+    // Dots navigation
+    let dotsWrapper,
+      dots = [];
+    if (config.dots === true) {
+      const container = items[0].parentNode;
+      dotsWrapper = document.createElement("div");
+      dotsWrapper.className = "gsap-carousel-dots";
+      for (let i = 0; i < items.length; i++) {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "gsap-carousel-dot";
+        dot.setAttribute("data-index", i);
+        dot.onclick = () => tl.toIndex(i);
+        dotsWrapper.appendChild(dot);
+        dots.push(dot);
+      }
+      if (
+        config.dotsContainer &&
+        document.querySelector(config.dotsContainer)
+      ) {
+        document.querySelector(config.dotsContainer).appendChild(dotsWrapper);
+      } else {
+        container.parentNode.insertBefore(dotsWrapper, container.nextSibling);
+      }
+      dots[0].classList.add("active");
+    }
+
+    // Helper to update dots' active class
+    function updateDots(index) {
+      if (config.dots === true && dots.length) {
+        dots.forEach((dot, i) => {
+          dot.classList.toggle("active", i === index);
+        });
+      }
+    }
+
+    // Inject default styles for nav and dots if needed
+    if (
+      (config.navigation === true || config.dots === true) &&
+      !document.getElementById("gsap-carousel-style")
+    ) {
+      const style = document.createElement("style");
+      style.id = "gsap-carousel-style";
+      style.textContent = `
+      .gsap-carousel-nav {
+        display: flex;
+        gap: 0.5em;
+        justify-content: center;
+        margin: 1em 0;
+      }
+      .gsap-carousel-nav button {
+        background: #eee;
+        border: 1px solid #bbb;
+        border-radius: 3px;
+        padding: 0.5em 1.2em;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background 0.2s, color 0.2s;
+      }
+      .gsap-carousel-nav button:hover {
+        background: #bbb;
+        color: #fff;
+      }
+      .gsap-carousel-dots {
+        display: flex;
+        gap: 0.5em;
+        justify-content: center;
+        margin: 1em 0;
+      }
+      .gsap-carousel-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid #bbb;
+        background: #eee;
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s, border-color 0.2s;
+      }
+      .gsap-carousel-dot.active,
+      .gsap-carousel-dot:focus {
+        background: #333;
+        border-color: #333;
+      }
+      `;
+      document.head.appendChild(style);
+    }
+
+    tl.closestIndex(true);
+    lastIndex = curIndex;
+    onChange && onChange(items[curIndex], curIndex);
+    if (config.dots === true) updateDots(curIndex);
+
+    // Patch onChange to also update dots
+    if (config.dots === true || onChange) {
+      const userOnChange = onChange;
+      tl.eventCallback("onUpdate", function () {
+        let i = tl.closestIndex();
+        if (lastIndex !== i) {
+          lastIndex = i;
+          if (config.dots === true) updateDots(i);
+          if (userOnChange) userOnChange(items[i], i);
+        }
+      });
+    }
+
+    // Accessibility: add aria-labels and keyboard support for nav/dots
+    if (config.navigation === true) {
+      const navBtns = document.querySelectorAll(
+        ".gsap-carousel-nav button, .gsap-carousel-prev, .gsap-carousel-next"
+      );
+      navBtns.forEach((btn) => {
+        btn.setAttribute("tabindex", "0");
+        if (!btn.hasAttribute("aria-label")) {
+          btn.setAttribute(
+            "aria-label",
+            btn.classList.contains("gsap-carousel-prev")
+              ? "Previous Slide"
+              : "Next Slide"
+          );
+        }
+      });
+    }
+    if (config.dots === true && dots.length) {
+      dots.forEach((dot, i) => {
+        dot.setAttribute("tabindex", "0");
+        dot.setAttribute("aria-label", `Go to slide ${i + 1}`);
+        dot.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            tl.toIndex(i);
+          }
+        });
+      });
+    }
+
+    // Keyboard navigation (left/right arrows)
+    if (config.keyboard !== false) {
+      const keyHandler = (e) => {
+        if (
+          document.activeElement &&
+          (document.activeElement.classList.contains("gsap-carousel-dot") ||
+            document.activeElement.classList.contains("gsap-carousel-prev") ||
+            document.activeElement.classList.contains("gsap-carousel-next"))
+        ) {
+          if (e.key === "ArrowLeft") {
+            tl.previous();
+          } else if (e.key === "ArrowRight") {
+            tl.next();
+          }
+        }
+      };
+      window.addEventListener("keydown", keyHandler);
+      tl._removeKeyHandler = () =>
+        window.removeEventListener("keydown", keyHandler);
+    }
+
+    timeline = tl;
+    // Cleanup function
+    timeline.cleanup = () => {
+      window.removeEventListener("resize", onResize);
+      if (config.responsive && config._updateResponsiveStyles) {
+        window.removeEventListener("resize", config._updateResponsiveStyles);
+      }
+      if (tl._removeKeyHandler) tl._removeKeyHandler();
+    };
+    return () => {
+      timeline.cleanup();
+    };
+  });
+  return timeline;
+}
