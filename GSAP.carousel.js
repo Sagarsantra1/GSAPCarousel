@@ -23,38 +23,139 @@ function horizontalLoop(itemsContainer, config) {
     throw new Error(`horizontalLoop: container "${itemsContainer}" not found`);
   }
   let timeline;
-  items = gsap.utils.toArray(container.children);
-  const responsive = config.responsive || 1;
+  const items = gsap.utils.toArray(container.children);
 
-  // Added responsive styling support
-  if (responsive) {
-    const updateResponsiveStyles = () => {
-      const breakpoints = Object.keys(config.responsive)
-        .map(Number)
-        .sort((a, b) => a - b);
-      let itemsPerRow = config.responsive[breakpoints[0]].items || 1;
-      const gap = config.gap || "0px";
-      for (let bp of breakpoints) {
-        if (window.innerWidth >= bp) {
-          itemsPerRow = config.responsive[bp].items;
-        }
+  // Consolidated config defaults for better readability
+  config = config || {};
+  config = {
+    responsive: config.responsive || { 0: { items: 1 } },
+    speed: config.speed || 1,
+    gap: config.gap || "0px",
+    draggable: config.draggable || false,
+    repeat: config.repeat || 0,
+    paused: config.paused || false,
+    reversed: config.reversed || false,
+    navigation:
+      typeof config.navigation !== "undefined" ? config.navigation : false,
+    prevNav: config.prevNav || null,
+    nextNav: config.nextNav || null,
+    navigationContainer: config.navigationContainer || null,
+    dots: typeof config.dots !== "undefined" ? config.dots : false,
+    dotsContainer: config.dotsContainer || null,
+    snap: config.snap || 1,
+    onChange: config.onChange || null,
+    center: config.center || false,
+    // ...add any additional config defaults as needed...
+  };
+
+  // --- New: Extracted helper function for responsive styles ---
+  function setupResponsiveStyles(container, items, config) {
+    const breakpoints = Object.keys(config.responsive)
+      .map(Number)
+      .sort((a, b) => a - b);
+    let itemsPerRow = config.responsive[breakpoints[0]].items || 1;
+    const gap = config.gap || "0px";
+    for (let bp of breakpoints) {
+      if (window.innerWidth >= bp) {
+        itemsPerRow = config.responsive[bp].items;
       }
-      container.style.setProperty("--items-per-row", itemsPerRow);
-      container.style.setProperty("--gap", gap);
-      container.style.display = "flex";
-      container.style.gap = "var(--gap)";
-      container.style.overflowX = "hidden";
-      items.forEach((child) => {
-        child.style.flex =
-          "0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)))";
-      });
-    };
+    }
+    container.style.setProperty("--items-per-row", itemsPerRow);
+    container.style.setProperty("--gap", gap);
+    container.style.display = "flex";
+    container.style.gap = "var(--gap)";
+    container.style.overflowX = "hidden";
+    items.forEach((child) => {
+      child.style.flex =
+        "0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)))";
+    });
+  }
+
+  // --- New: Extracted helper function to setup navigation ---
+  function setupNavigation(tl, container, config) {
+    let prevBtn, nextBtn, navWrapper;
+    if (config.prevNav && document.querySelector(config.prevNav)) {
+      prevBtn = document.querySelector(config.prevNav);
+    }
+    if (config.nextNav && document.querySelector(config.nextNav)) {
+      nextBtn = document.querySelector(config.nextNav);
+    }
+    // Use named functions for click handling
+    function handlePrev() {
+      tl.previous();
+    }
+    function handleNext() {
+      tl.next();
+    }
+    if (!prevBtn || !nextBtn) {
+      navWrapper = document.createElement("div");
+      navWrapper.className = "gsap-carousel-nav";
+      if (!prevBtn) {
+        prevBtn = document.createElement("button");
+        prevBtn.type = "button";
+        prevBtn.innerText = "Previous";
+        prevBtn.className = "gsap-carousel-prev";
+        prevBtn.addEventListener("click", handlePrev);
+        navWrapper.appendChild(prevBtn);
+      }
+      if (!nextBtn) {
+        nextBtn = document.createElement("button");
+        nextBtn.type = "button";
+        nextBtn.innerText = "Next";
+        nextBtn.className = "gsap-carousel-next";
+        nextBtn.addEventListener("click", handleNext);
+        navWrapper.appendChild(nextBtn);
+      }
+      if (
+        config.navigationContainer &&
+        document.querySelector(config.navigationContainer)
+      ) {
+        document
+          .querySelector(config.navigationContainer)
+          .appendChild(navWrapper);
+      } else {
+        container.parentNode.insertBefore(navWrapper, container.nextSibling);
+      }
+    } else {
+      prevBtn.addEventListener("click", handlePrev);
+      nextBtn.addEventListener("click", handleNext);
+    }
+  }
+
+  // --- New: Extracted helper function to setup dots ---
+  function setupDots(tl, items, container, config) {
+    let dotsWrapper = document.createElement("div");
+    dotsWrapper.className = "gsap-carousel-dots";
+    const dots = [];
+    for (let i = 0; i < items.length; i++) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "gsap-carousel-dot";
+      dot.setAttribute("data-index", i);
+      dot.addEventListener("click", () => tl.toIndex(i));
+      dotsWrapper.appendChild(dot);
+      dots.push(dot);
+    }
+    if (config.dotsContainer && document.querySelector(config.dotsContainer)) {
+      document.querySelector(config.dotsContainer).appendChild(dotsWrapper);
+    } else {
+      container.parentNode.insertBefore(dotsWrapper, container.nextSibling);
+    }
+    // Set first dot active
+    if (dots[0]) {
+      dots[0].classList.add("active");
+    }
+    return dots;
+  }
+
+  if (config.responsive) {
+    // Replace inline updateResponsiveStyles with helper function
+    const updateResponsiveStyles = () =>
+      setupResponsiveStyles(container, items, config);
     updateResponsiveStyles();
     window.addEventListener("resize", updateResponsiveStyles);
-    // Store for cleanup
     config._updateResponsiveStyles = updateResponsiveStyles;
   }
-  config = config || {};
   gsap.context(() => {
     // use a context so that if this is called from within another context or a gsap.matchMedia(), we can perform proper cleanup like the "resize" event handler on the window
     let onChange = config.onChange,
@@ -70,15 +171,6 @@ function horizontalLoop(itemsContainer, config) {
               lastIndex = i;
               onChange(items[i], i);
             }
-
-            // New: if delayOnChange is set and timeline isn't paused,
-            // pause the animation and resume after the specified delay.
-            // if (!config.paused && config.delayOnChange) {
-            //   tl.pause();
-            //   setTimeout(() => {
-            //     tl.play();
-            //   }, config.delayOnChange);
-            // }
           },
         paused: config.paused,
         defaults: { ease: "none" },
@@ -94,7 +186,7 @@ function horizontalLoop(itemsContainer, config) {
       curIndex = 0,
       indexIsDirty = false,
       center = config.center,
-      pixelsPerSecond = (config.speed || 1) * 100,
+      pixelsPerSecond = config.speed * 100,
       snap =
         config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1),
       timeOffset = 0,
@@ -327,80 +419,18 @@ function horizontalLoop(itemsContainer, config) {
 
     // Navigation buttons
     if (config.navigation === true) {
-      const container = items[0].parentNode;
-      let prevBtn, nextBtn, navWrapper;
-
-      // Use external selectors if provided
-      if (config.prevNav && document.querySelector(config.prevNav)) {
-        prevBtn = document.querySelector(config.prevNav);
-        prevBtn.onclick = () => tl.previous();
-      }
-      if (config.nextNav && document.querySelector(config.nextNav)) {
-        nextBtn = document.querySelector(config.nextNav);
-        nextBtn.onclick = () => tl.next();
-      }
-
-      // If not provided, create default nav
-      if (!prevBtn || !nextBtn) {
-        navWrapper = document.createElement("div");
-        navWrapper.className = "gsap-carousel-nav";
-        if (!prevBtn) {
-          prevBtn = document.createElement("button");
-          prevBtn.type = "button";
-          prevBtn.innerText = "Previous";
-          prevBtn.className = "gsap-carousel-prev";
-          prevBtn.onclick = () => tl.previous();
-          navWrapper.appendChild(prevBtn);
-        }
-        if (!nextBtn) {
-          nextBtn = document.createElement("button");
-          nextBtn.type = "button";
-          nextBtn.innerText = "Next";
-          nextBtn.className = "gsap-carousel-next";
-          nextBtn.onclick = () => tl.next();
-          navWrapper.appendChild(nextBtn);
-        }
-        if (
-          config.navigationContainer &&
-          document.querySelector(config.navigationContainer)
-        ) {
-          document
-            .querySelector(config.navigationContainer)
-            .appendChild(navWrapper);
-        } else {
-          container.parentNode.insertBefore(navWrapper, container.nextSibling);
-        }
-      }
+      const navContainer = items[0].parentNode;
+      setupNavigation(tl, navContainer, config);
     }
 
-    // Dots navigation
-    let dotsWrapper,
-      dots = [];
+    // New: Setup dots navigation if enabled
+    let dots = [];
     if (config.dots === true) {
-      const container = items[0].parentNode;
-      dotsWrapper = document.createElement("div");
-      dotsWrapper.className = "gsap-carousel-dots";
-      for (let i = 0; i < items.length; i++) {
-        const dot = document.createElement("button");
-        dot.type = "button";
-        dot.className = "gsap-carousel-dot";
-        dot.setAttribute("data-index", i);
-        dot.onclick = () => tl.toIndex(i);
-        dotsWrapper.appendChild(dot);
-        dots.push(dot);
-      }
-      if (
-        config.dotsContainer &&
-        document.querySelector(config.dotsContainer)
-      ) {
-        document.querySelector(config.dotsContainer).appendChild(dotsWrapper);
-      } else {
-        container.parentNode.insertBefore(dotsWrapper, container.nextSibling);
-      }
-      dots[0].classList.add("active");
+      const dotsContainer = items[0].parentNode;
+      dots = setupDots(tl, items, dotsContainer, config);
     }
 
-    // Helper to update dots' active class
+    // Ensure dots update on timeline update:
     function updateDots(index) {
       if (config.dots === true && dots.length) {
         dots.forEach((dot, i) => {
@@ -408,63 +438,6 @@ function horizontalLoop(itemsContainer, config) {
         });
       }
     }
-
-    // Inject default styles for nav and dots if needed
-    if (
-      (config.navigation === true || config.dots === true) &&
-      !document.getElementById("gsap-carousel-style")
-    ) {
-      const style = document.createElement("style");
-      style.id = "gsap-carousel-style";
-      style.textContent = `
-      .gsap-carousel-nav {
-        display: flex;
-        gap: 0.5em;
-        justify-content: center;
-        margin: 1em 0;
-      }
-      .gsap-carousel-nav button {
-        background: #eee;
-        border: 1px solid #bbb;
-        border-radius: 3px;
-        padding: 0.5em 1.2em;
-        cursor: pointer;
-        font-size: 1em;
-        transition: background 0.2s, color 0.2s;
-      }
-      .gsap-carousel-nav button:hover {
-        background: #bbb;
-        color: #fff;
-      }
-      .gsap-carousel-dots {
-        display: flex;
-        gap: 0.5em;
-        justify-content: center;
-        margin: 1em 0;
-      }
-      .gsap-carousel-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 1px solid #bbb;
-        background: #eee;
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.2s, border-color 0.2s;
-      }
-      .gsap-carousel-dot.active,
-      .gsap-carousel-dot:focus {
-        background: #333;
-        border-color: #333;
-      }
-      `;
-      document.head.appendChild(style);
-    }
-
-    tl.closestIndex(true);
-    lastIndex = curIndex;
-    onChange && onChange(items[curIndex], curIndex);
-    if (config.dots === true) updateDots(curIndex);
 
     // Patch onChange to also update dots
     if (config.dots === true || onChange) {
@@ -479,7 +452,7 @@ function horizontalLoop(itemsContainer, config) {
       });
     }
 
-    // Accessibility: add aria-labels and keyboard support for nav/dots
+    // Accessibility: add aria-labels for nav/dots
     if (config.navigation === true) {
       const navBtns = document.querySelectorAll(
         ".gsap-carousel-nav button, .gsap-carousel-prev, .gsap-carousel-next"
@@ -507,27 +480,6 @@ function horizontalLoop(itemsContainer, config) {
           }
         });
       });
-    }
-
-    // Keyboard navigation (left/right arrows)
-    if (config.keyboard !== false) {
-      const keyHandler = (e) => {
-        if (
-          document.activeElement &&
-          (document.activeElement.classList.contains("gsap-carousel-dot") ||
-            document.activeElement.classList.contains("gsap-carousel-prev") ||
-            document.activeElement.classList.contains("gsap-carousel-next"))
-        ) {
-          if (e.key === "ArrowLeft") {
-            tl.previous();
-          } else if (e.key === "ArrowRight") {
-            tl.next();
-          }
-        }
-      };
-      window.addEventListener("keydown", keyHandler);
-      tl._removeKeyHandler = () =>
-        window.removeEventListener("keydown", keyHandler);
     }
 
     timeline = tl;
