@@ -4,7 +4,7 @@ This helper function makes a group of elements animate along the x-axis in a sea
 Features:
  - Uses xPercent so that even if the widths change (like if the window gets resized), it should still work in most cases.
  - When each item animates to the left or right enough, it will loop back to the other side
- - Optionally pass in a config object with values like draggable: true, center: true, speed (default: 1, which travels at roughly 100 pixels per second), paused (boolean), repeat, reversed, and paddingRight.
+ - Optionally pass in a config object with values like draggable: true, center: true, speed (default: 1, which travels at roughly 100 pixels per second), autoplay (boolean), repeat, reversed, and paddingRight.
  - The returned timeline will have the following methods added to it:
    - next() - animates to the next element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
    - previous() - animates to the previous element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
@@ -33,7 +33,8 @@ function horizontalLoop(itemsContainer, config) {
     gap: config.gap || "0px",
     draggable: config.draggable || false,
     repeat: config.repeat || 0,
-    paused: config.paused || false,
+    paused: !config.autoplay || false,
+    autoplayTimeout: config.autoplayTimeout || 0,
     reversed: config.reversed || false,
     navigation:
       typeof config.navigation !== "undefined" ? config.navigation : false,
@@ -116,11 +117,99 @@ function horizontalLoop(itemsContainer, config) {
       } else {
         container.parentNode.insertBefore(navWrapper, container.nextSibling);
       }
-    } else {
+    }
+    if (prevBtn) {
       prevBtn.addEventListener("click", handlePrev);
+    }
+    if (nextBtn) {
       nextBtn.addEventListener("click", handleNext);
     }
   }
+
+  // nav and dot default styles
+  function injectCarouselStyles() {
+    // avoid injecting twice
+    if (document.getElementById("gsap-carousel-dots-styles")) return;
+
+    let css = "";
+
+    // only add navigation styles if requested
+    if ((config.navigation && !config.prevNav) || !config.nextNav) {
+      css += `
+    /* Navigation wrapper */
+    .gsap-carousel-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+    }
+
+    /* Base styles for both buttons */
+    .gsap-carousel-nav button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      font-size: 14px;
+      line-height: 1;
+      border: none;
+      border-radius: 4px;
+      background-color: #eee;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    /* Hover/focus states */
+    .gsap-carousel-nav button:hover,
+    .gsap-carousel-nav button:focus {
+      background-color: #ddd;
+      outline: none;
+    }
+
+    .gsap-carousel-nav button:active {
+      transform: scale(0.95);
+    }
+
+    `;
+    }
+
+    // only add dots styles if requested
+    if (config.dots) {
+      css += `
+    .gsap-carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 0;
+    }
+    .gsap-carousel-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--gsap-carousel-dot-bg, #ccc);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: var(--gsap-carousel-dot-transition, background-color 0.3s);
+    }
+    .gsap-carousel-dot.active {
+      background-color: var(--gsap-carousel-dot-bg-active, #333);
+    }
+    `;
+    }
+
+    // if there's nothing to inject, bail out
+    if (!css.trim()) return;
+
+    const style = document.createElement("style");
+    style.id = "gsap-carousel-dots-styles";
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+  injectCarouselStyles();
 
   // --- New: Extracted helper function to setup dots ---
   function setupDots(tl, items, container, config) {
@@ -172,7 +261,7 @@ function horizontalLoop(itemsContainer, config) {
               onChange(items[i], i);
             }
           },
-        paused: config.paused,
+        paused: config.autoplayTimeout ? true : config.paused,
         defaults: { ease: "none" },
         onReverseComplete: () =>
           tl.totalTime(tl.rawTime() + tl.duration() * 100),
@@ -415,6 +504,11 @@ function horizontalLoop(itemsContainer, config) {
         },
       })[0];
       tl.draggable = draggable;
+    }
+
+    if (config.autoplayTimeout) {
+      // New: Autoplay functionality
+      setInterval(tl.next, config.autoplayTimeout);
     }
 
     // Navigation buttons
