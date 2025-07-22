@@ -407,6 +407,8 @@ function horizontalLoop(itemsContainer, config) {
     window.removeEventListener("resize", onResize);
     window.addEventListener("resize", debounce(onResize, 100));
 
+    let pendingCall;
+
     function toIndex(index, vars) {
       vars = vars || {};
       Math.abs(index - curIndex) > length / 2 &&
@@ -422,6 +424,18 @@ function horizontalLoop(itemsContainer, config) {
       curIndex = newIndex;
       vars.overwrite = true;
       gsap.killTweensOf(proxy);
+
+      if (
+        config.autoplayTimeout &&
+        !config.paused &&
+        config.autoplayTimeout > 0
+      ) {
+        // New: Autoplay functionality\
+        clearTimeout(pendingCall);
+        pendingCall = config.reversed
+          ? setTimeout(tl.previous, config.autoplayTimeout)
+          : setTimeout(tl.next, config.autoplayTimeout);
+      }
       return vars.duration === 0
         ? tl.time(timeWrap(time))
         : tl.tweenTo(time, vars);
@@ -440,7 +454,14 @@ function horizontalLoop(itemsContainer, config) {
     tl.previous = (vars) => toIndex(tl.current() - 1, vars);
     tl.times = times;
     tl.progress(1, true).progress(0, true);
-    if (config.reversed) {
+    if (
+      config.autoplayTimeout &&
+      !config.paused &&
+      config.autoplayTimeout > 0
+    ) {
+      toIndex(tl.current());
+    }
+    if (config.reversed && !config.autoplayTimeout) {
       tl.vars.onReverseComplete();
       tl.reverse();
     }
@@ -508,7 +529,9 @@ function horizontalLoop(itemsContainer, config) {
 
     if (config.autoplayTimeout) {
       // New: Autoplay functionality
-      setInterval(tl.next, config.autoplayTimeout);
+      config.reversed
+        ? setInterval(tl.previous, config.autoplayTimeout)
+        : setInterval(tl.next, config.autoplayTimeout);
     }
 
     // Navigation buttons
