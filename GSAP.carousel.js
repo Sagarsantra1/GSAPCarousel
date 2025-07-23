@@ -28,7 +28,7 @@ function horizontalLoop(itemsContainer, config) {
   // Consolidated config defaults for better readability
   config = config || {};
   config = {
-    responsive: config.responsive || { 0: { items: 1 } },
+    responsive: config.responsive || null,
     speed: config.speed || 1,
     gap: config.gap || "0px",
     draggable: config.draggable || false,
@@ -49,30 +49,42 @@ function horizontalLoop(itemsContainer, config) {
     // ...add any additional config defaults as needed...
   };
 
-  // --- New: Extracted helper function for responsive styles ---
+  // --- helper function for basic styles ---
+
+  function setupBasicStyles(container, items, config) {
+    container.style.setProperty("--gap", config.gap);
+    container.style.display = "flex";
+    container.style.gap = "var(--gap)";
+    container.style.overflowX = "hidden";
+    if (!config.responsive) {
+      items.forEach((child) => {
+        child.style.flex = "0 0 auto";
+      });
+    }
+  }
+
+  setupBasicStyles(container, items, config);
+
+  // --- helper function for responsive styles ---
   function setupResponsiveStyles(container, items, config) {
     const breakpoints = Object.keys(config.responsive)
       .map(Number)
       .sort((a, b) => a - b);
     let itemsPerRow = config.responsive[breakpoints[0]].items || 1;
-    const gap = config.gap || "0px";
+
     for (let bp of breakpoints) {
       if (window.innerWidth >= bp) {
         itemsPerRow = config.responsive[bp].items;
       }
     }
     container.style.setProperty("--items-per-row", itemsPerRow);
-    container.style.setProperty("--gap", gap);
-    container.style.display = "flex";
-    container.style.gap = "var(--gap)";
-    container.style.overflowX = "hidden";
     items.forEach((child) => {
       child.style.flex =
         "0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)))";
     });
   }
 
-  // --- New: Extracted helper function to setup navigation ---
+  // --- helper function to setup navigation ---
   function setupNavigation(tl, container, config) {
     let prevBtn, nextBtn, navWrapper;
     if (config.prevNav && document.querySelector(config.prevNav)) {
@@ -211,7 +223,7 @@ function horizontalLoop(itemsContainer, config) {
   }
   injectCarouselStyles();
 
-  // --- New: Extracted helper function to setup dots ---
+  // --- helper function to setup dots ---
   function setupDots(tl, items, container, config) {
     let dotsWrapper = document.createElement("div");
     dotsWrapper.className = "gsap-carousel-dots";
@@ -430,7 +442,7 @@ function horizontalLoop(itemsContainer, config) {
         !config.paused &&
         config.autoplayTimeout > 0
       ) {
-        // New: Autoplay functionality\
+        // Autoplay functionality\
         clearTimeout(pendingCall);
         pendingCall = config.reversed
           ? setTimeout(tl.previous, config.autoplayTimeout)
@@ -528,7 +540,7 @@ function horizontalLoop(itemsContainer, config) {
     }
 
     if (config.autoplayTimeout) {
-      // New: Autoplay functionality
+      // Autoplay functionality
       config.reversed
         ? setInterval(tl.previous, config.autoplayTimeout)
         : setInterval(tl.next, config.autoplayTimeout);
@@ -540,7 +552,7 @@ function horizontalLoop(itemsContainer, config) {
       setupNavigation(tl, navContainer, config);
     }
 
-    // New: Setup dots navigation if enabled
+    // Setup dots navigation if enabled
     let dots = [];
     if (config.dots === true) {
       const dotsContainer = items[0].parentNode;
