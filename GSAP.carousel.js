@@ -1,16 +1,21 @@
-/*
-This helper function makes a group of elements animate along the x-axis in a seamless, responsive loop.
-
-Features:
- - Uses xPercent so that even if the widths change (like if the window gets resized), it should still work in most cases.
- - When each item animates to the left or right enough, it will loop back to the other side
- - Optionally pass in a config object with values like draggable: true, center: true, speed (default: 1, which travels at roughly 100 pixels per second), autoplay (boolean), repeat, reversed, and paddingRight.
- - The returned timeline will have the following methods added to it:
-   - next() - animates to the next element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
-   - previous() - animates to the previous element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
-   - toIndex() - pass in a zero-based index value of the element that it should animate to, and optionally pass in a vars object to control duration, easing, etc. Always goes in the shortest direction
-   - current() - returns the current index (if an animation is in-progress, it reflects the final index)
-   - times - an Array of the times on the timeline where each element hits the "starting" spot.
+/**
+ * Creates a seamless, responsive, looping horizontal carousel using GSAP.
+ * @param {string|HTMLElement} containerEl - Selector or DOM element containing slide items.
+ * @param {Object} [config] - Configuration options.
+ * @param {Object|null} [options.responsive=null] - Responsive breakpoints mapping to itemsPerRow.
+ * @param {number} [options.speed=1] - Speed multiplier (1 ≈ 100px/s).
+ * @param {string} [options.gap='0px'] - Gap between items (CSS length).
+ * @param {boolean} [options.draggable=false] - Enable Draggable support.
+ * @param {number} [options.repeat=0] - Number of loop repeats (-1 for infinite).
+ * @param {boolean} [options.autoplay=false] - Auto-advance slides.
+ * @param {number} [options.autoplayTimeout=0] - Delay between auto-advances (ms).
+ * @param {boolean} [options.reversed=false] - Reverse loop direction.
+ * @param {boolean} [options.navigation=false] - Enable prev/next buttons.
+ * @param {boolean} [options.dots=false] - Enable pagination dots.
+ * @param {number|false} [options.snap=1] - Snap increment (false to disable).
+ * @param {Function|null} [options.onChange=null] - Callback on slide change (item, index).
+ * @param {boolean} [options.center=false] - Center mode (items loop from center).
+ * @returns {GSAPTimeline} Configured GSAP timeline with extra controls and a .cleanup() method.
  */
 function horizontalLoop(itemsContainer, config) {
   // Resolve container (selector string or DOM element)
@@ -51,7 +56,7 @@ function horizontalLoop(itemsContainer, config) {
 
   // --- helper function for basic styles ---
 
-  function setupBasicStyles(container, items, config) {
+  function initStyles(container, items, config) {
     container.style.setProperty("--gap", config.gap);
     container.style.display = "flex";
     container.style.gap = "var(--gap)";
@@ -63,7 +68,7 @@ function horizontalLoop(itemsContainer, config) {
     }
   }
 
-  setupBasicStyles(container, items, config);
+  initStyles(container, items, config);
 
   // --- helper function for responsive styles ---
   function setupResponsiveStyles(container, items, config) {
@@ -148,7 +153,6 @@ function horizontalLoop(itemsContainer, config) {
     // only add navigation styles if requested
     if ((config.navigation && !config.prevNav) || !config.nextNav) {
       css += `
-    /* Navigation wrapper */
     .gsap-carousel-nav {
       display: flex;
       justify-content: center;
@@ -157,7 +161,6 @@ function horizontalLoop(itemsContainer, config) {
       padding: 10px 0;
     }
 
-    /* Base styles for both buttons */
     .gsap-carousel-nav button {
       display: inline-flex;
       align-items: center;
@@ -174,7 +177,6 @@ function horizontalLoop(itemsContainer, config) {
       transition: background-color 0.2s, transform 0.1s;
     }
 
-    /* Hover/focus states */
     .gsap-carousel-nav button:hover,
     .gsap-carousel-nav button:focus {
       background-color: #ddd;
@@ -281,7 +283,6 @@ function horizontalLoop(itemsContainer, config) {
         onUpdate:
           onChange &&
           function (self) {
-            console.log("onUpdate called", self);
             let i = tl.closestIndex();
             if (lastIndex !== i) {
               lastIndex = i;
