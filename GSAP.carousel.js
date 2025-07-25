@@ -249,6 +249,21 @@ function horizontalLoop(itemsContainer, config) {
     return dots;
   }
 
+  // Function to schedule autoplay
+  let pendingCall;
+  function scheduleAutoplay(tl) {
+    if (config.autoplayTimeout > 0 && !config.paused) {
+      clearTimeout(pendingCall);
+      pendingCall = setTimeout(() => {
+        if (config.reversed) {
+          tl.previous();
+        } else {
+          tl.next();
+        }
+      }, config.autoplayTimeout);
+    }
+  }
+
   if (config.responsive) {
     // Replace inline updateResponsiveStyles with helper function
     const updateResponsiveStyles = () =>
@@ -419,8 +434,6 @@ function horizontalLoop(itemsContainer, config) {
     window.removeEventListener("resize", onResize);
     window.addEventListener("resize", debounce(onResize, 100));
 
-    let pendingCall;
-
     function toIndex(index, vars) {
       vars = vars || {};
       Math.abs(index - curIndex) > length / 2 &&
@@ -437,21 +450,13 @@ function horizontalLoop(itemsContainer, config) {
       vars.overwrite = true;
       gsap.killTweensOf(proxy);
 
-      if (config.autoplayTimeout > 0 && !config.paused) {
-        // Autoplay functionality
-        clearTimeout(pendingCall);
-        pendingCall = setTimeout(() => {
-          if (config.reversed) {
-            tl.previous();
-          } else {
-            tl.next();
-          }
-        }, config.autoplayTimeout);
-      }
+      scheduleAutoplay(tl);
       return vars.duration === 0
         ? tl.time(timeWrap(time))
         : tl.tweenTo(time, vars);
     }
+    scheduleAutoplay(tl);
+
     tl.toIndex = (index, vars) => toIndex(index, vars);
     tl.closestIndex = (setCurrent) => {
       let index = getClosest(times, tl.time(), tl.duration());
@@ -461,14 +466,12 @@ function horizontalLoop(itemsContainer, config) {
       }
       return index;
     };
+
     tl.current = () => (indexIsDirty ? tl.closestIndex(true) : curIndex);
     tl.next = (vars) => toIndex(tl.current() + 1, vars);
     tl.previous = (vars) => toIndex(tl.current() - 1, vars);
     tl.times = times;
     tl.progress(1, true).progress(0, true);
-    if (config.autoplayTimeout > 0 && !config.paused) {
-      toIndex(tl.current());
-    }
     if (config.reversed && !config.autoplayTimeout) {
       tl.vars.onReverseComplete();
       tl.reverse();
