@@ -437,16 +437,16 @@ function horizontalLoop(itemsContainer, config) {
       vars.overwrite = true;
       gsap.killTweensOf(proxy);
 
-      if (
-        config.autoplayTimeout &&
-        !config.paused &&
-        config.autoplayTimeout > 0
-      ) {
-        // Autoplay functionality\
+      if (config.autoplayTimeout > 0 && !config.paused) {
+        // Autoplay functionality
         clearTimeout(pendingCall);
-        pendingCall = config.reversed
-          ? setTimeout(tl.previous, config.autoplayTimeout)
-          : setTimeout(tl.next, config.autoplayTimeout);
+        pendingCall = setTimeout(() => {
+          if (config.reversed) {
+            tl.previous();
+          } else {
+            tl.next();
+          }
+        }, config.autoplayTimeout);
       }
       return vars.duration === 0
         ? tl.time(timeWrap(time))
@@ -466,11 +466,7 @@ function horizontalLoop(itemsContainer, config) {
     tl.previous = (vars) => toIndex(tl.current() - 1, vars);
     tl.times = times;
     tl.progress(1, true).progress(0, true);
-    if (
-      config.autoplayTimeout &&
-      !config.paused &&
-      config.autoplayTimeout > 0
-    ) {
+    if (config.autoplayTimeout > 0 && !config.paused) {
       toIndex(tl.current());
     }
     if (config.reversed && !config.autoplayTimeout) {
@@ -537,13 +533,6 @@ function horizontalLoop(itemsContainer, config) {
         },
       })[0];
       tl.draggable = draggable;
-    }
-
-    if (config.autoplayTimeout) {
-      // Autoplay functionality
-      config.reversed
-        ? setInterval(tl.previous, config.autoplayTimeout)
-        : setInterval(tl.next, config.autoplayTimeout);
     }
 
     // Navigation buttons
