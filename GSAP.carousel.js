@@ -15,46 +15,69 @@
  * @param {number|false} [options.snap=1] - Snap increment (false to disable).
  * @param {Function|null} [options.onChange=null] - Callback on slide change (item, index).
  * @param {boolean} [options.center=false] - Center mode (items loop from center).
+ * @param {boolean} [options.navStyle=false] - Injects complete CSS for navigation styles.
  * @returns {GSAPTimeline} Configured GSAP timeline with extra controls and a .cleanup() method.
  */
 function horizontalLoop(itemsContainer, config) {
-  // Resolve container (selector string or DOM element)
+  // Get the container element, supporting both string selectors and DOM nodes
   const container =
     typeof itemsContainer === "string"
       ? document.querySelector(itemsContainer)
       : itemsContainer;
 
-  if (!container) {
-    throw new Error(`horizontalLoop: container "${itemsContainer}" not found`);
+  if (!(container instanceof Element)) {
+    throw new Error(
+      `horizontalLoop: container "${itemsContainer}" not found or is not a valid Element.`
+    );
   }
-  let timeline;
-  const items = gsap.utils.toArray(container.children);
 
-  // Consolidated config defaults for better readability
-  config = config || {};
-  config = {
-    responsive: config.responsive || null,
-    speed: config.speed || 1,
-    gap: config.gap || "0px",
-    draggable: config.draggable || false,
-    repeat: config.repeat || 0,
-    paused: !config.autoplay || false,
-    autoplayTimeout: config.autoplayTimeout || 0,
-    reversed: config.reversed || false,
-    navigation:
-      typeof config.navigation !== "undefined" ? config.navigation : false,
-    prevNav: config.prevNav || null,
-    nextNav: config.nextNav || null,
-    navigationContainer: config.navigationContainer || null,
-    dots: typeof config.dots !== "undefined" ? config.dots : false,
-    dotsContainer: config.dotsContainer || null,
-    snap: config.snap || 1,
-    onChange: config.onChange || null,
-    center: config.center || false,
-    // ...add any additional config defaults as needed...
+  // Ensure items is an array of Element children
+  const items = Array.from(container.children);
+  let timeline;
+
+  //  defaults
+  const defaultConfig = {
+    responsive: null,
+    speed: 1,
+    gap: "0px",
+    draggable: false,
+    repeat: 0,
+    autoplay: false,
+    paused: true,
+    autoplayTimeout: 0,
+    reversed: false,
+    navigation: false,
+    prevNav: null,
+    nextNav: null,
+    navigationContainer: null,
+    dots: false,
+    dotsContainer: null,
+    snap: 1,
+    onChange: null,
+    center: false,
+    navStyle: false,
   };
 
-  // --- helper function for basic styles ---
+  // Merge user config with defaults
+  config = {
+    ...defaultConfig,
+    ...config,
+  };
+
+  // Handle the autoplay/paused relationship logic
+  if ("autoplay" in config) {
+    config.paused = !config.autoplay;
+  } else if (!("paused" in config)) {
+    config.paused = true; // Default behavior when neither is specified
+  }
+
+  // Type validation for critical numeric properties
+  if (typeof config.speed === "string") {
+    config.speed = parseFloat(config.speed) || defaultConfig.speed;
+  }
+  if (typeof config.snap === "string") {
+    config.snap = parseInt(config.snap, 10) || defaultConfig.snap;
+  }
 
   function initStyles(container, items, config) {
     container.style.setProperty("--gap", config.gap);
@@ -68,91 +91,201 @@ function horizontalLoop(itemsContainer, config) {
     }
   }
 
+  // Apply initial styles
   initStyles(container, items, config);
 
-  // --- helper function for responsive styles ---
+  // helper for responsive styles
   function setupResponsiveStyles(container, items, config) {
+    // Cache the current window width to avoid repeated property accesses
+    const winWidth = window.innerWidth;
+
     const breakpoints = Object.keys(config.responsive)
       .map(Number)
-      .sort((a, b) => a - b);
-    let itemsPerRow = config.responsive[breakpoints[0]].items || 1;
+      .sort((a, b) => a - b); // Determine the correct itemsPerRow for the current breakpoint
 
-    for (let bp of breakpoints) {
-      if (window.innerWidth >= bp) {
+    let itemsPerRow = config.responsive[breakpoints[0]]?.items || 1;
+    for (const bp of breakpoints) {
+      if (winWidth >= bp && config.responsive[bp]?.items) {
         itemsPerRow = config.responsive[bp].items;
       }
+    } // Set CSS variable only when changed
+
+    if (
+      container.style.getPropertyValue("--items-per-row") !==
+      String(itemsPerRow)
+    ) {
+      container.style.setProperty("--items-per-row", itemsPerRow);
+    } // Calculate flex-basis with `itemsPerRow` only once for all children
+
+    const basis = `0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)))`;
+    for (const child of items) {
+      // Set only if not already set to reduce style recalculations
+      if (child.style.flex !== basis) {
+        child.style.flex = basis;
+      }
     }
-    container.style.setProperty("--items-per-row", itemsPerRow);
-    items.forEach((child) => {
-      child.style.flex =
-        "0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)))";
-    });
   }
 
-  // --- helper function to setup navigation ---
+  // helper function for navigation setup with cleanup capability
   function setupNavigation(tl, container, config) {
-    let prevBtn, nextBtn, navWrapper;
-    if (config.prevNav && document.querySelector(config.prevNav)) {
-      prevBtn = document.querySelector(config.prevNav);
+    // Usage with cleanup capability
+    // const navigation = setupNavigation(timeline, container, config);
+
+    // Later, when cleaning up:
+    // navigation.destroy();
+
+    // Validate inputs early
+    if (!tl || !(container instanceof Element) || !config) {
+      throw new Error("setupNavigation: Invalid parameters provided");
     }
-    if (config.nextNav && document.querySelector(config.nextNav)) {
-      nextBtn = document.querySelector(config.nextNav);
-    }
-    // Use named functions for click handling
-    function handlePrev() {
-      tl.previous();
-    }
-    function handleNext() {
-      tl.next();
-    }
+
+    // Cache DOM queries to avoid repeated lookups
+    const existingPrevBtn = config.prevNav
+      ? document.querySelector(config.prevNav)
+      : null;
+    const existingNextBtn = config.nextNav
+      ? document.querySelector(config.nextNav)
+      : null;
+    const navigationContainer = config.navigationContainer
+      ? document.querySelector(config.navigationContainer)
+      : null;
+
+    let prevBtn = existingPrevBtn;
+    let nextBtn = existingNextBtn;
+    let navWrapper = null;
+    let createdElements = [];
+
+    // Named event handlers for better performance and cleanup
+    const handlePrev = () => {
+      if (tl && typeof tl.previous === "function") {
+        tl.previous();
+      }
+    };
+
+    const handleNext = () => {
+      if (tl && typeof tl.next === "function") {
+        tl.next();
+      }
+    };
+
+    // Create navigation wrapper and buttons if needed
     if (!prevBtn || !nextBtn) {
       navWrapper = document.createElement("div");
       navWrapper.className = "gsap-carousel-nav";
+      createdElements.push(navWrapper);
+
+      // Create previous button if not provided
       if (!prevBtn) {
-        prevBtn = document.createElement("button");
-        prevBtn.type = "button";
-        prevBtn.innerText = "Previous";
-        prevBtn.className = "gsap-carousel-prev";
-        prevBtn.addEventListener("click", handlePrev);
+        prevBtn = createNavigationButton(
+          "Previous",
+          "gsap-carousel-prev",
+          handlePrev
+        );
         navWrapper.appendChild(prevBtn);
+        createdElements.push(prevBtn);
       }
+
+      // Create next button if not provided
       if (!nextBtn) {
-        nextBtn = document.createElement("button");
-        nextBtn.type = "button";
-        nextBtn.innerText = "Next";
-        nextBtn.className = "gsap-carousel-next";
-        nextBtn.addEventListener("click", handleNext);
+        nextBtn = createNavigationButton(
+          "Next",
+          "gsap-carousel-next",
+          handleNext
+        );
         navWrapper.appendChild(nextBtn);
+        createdElements.push(nextBtn);
       }
-      if (
-        config.navigationContainer &&
-        document.querySelector(config.navigationContainer)
-      ) {
-        document
-          .querySelector(config.navigationContainer)
-          .appendChild(navWrapper);
+
+      // Append navigation to appropriate container
+      appendNavigationToContainer(navWrapper, navigationContainer, container);
+    }
+
+    // Add event listeners to existing buttons (avoid double-adding for created buttons)
+    if (existingPrevBtn) {
+      existingPrevBtn.addEventListener("click", handlePrev);
+    }
+    if (existingNextBtn) {
+      existingNextBtn.addEventListener("click", handleNext);
+    }
+
+    // Return cleanup function for proper memory management
+    return {
+      destroy() {
+        // Remove event listeners
+        if (existingPrevBtn) {
+          existingPrevBtn.removeEventListener("click", handlePrev);
+        }
+        if (existingNextBtn) {
+          existingNextBtn.removeEventListener("click", handleNext);
+        }
+
+        // Remove created elements
+        createdElements.forEach((element) => {
+          if (element.parentNode) {
+            element.parentNode.removeChild(element);
+          }
+        });
+
+        // Clear references
+        createdElements.length = 0;
+      },
+
+      // Expose button references for external control
+      prevButton: prevBtn,
+      nextButton: nextBtn,
+      wrapper: navWrapper,
+    };
+  }
+
+  // Helper function to create navigation buttons
+  function createNavigationButton(text, className, clickHandler) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = text;
+    button.className = className;
+    button.addEventListener("click", clickHandler);
+
+    // Add accessibility attributes
+    button.setAttribute("aria-label", text);
+
+    return button;
+  }
+
+  // Helper function to append navigation to container
+  function appendNavigationToContainer(
+    navWrapper,
+    navigationContainer,
+    fallbackContainer
+  ) {
+    try {
+      if (navigationContainer) {
+        navigationContainer.appendChild(navWrapper);
+      } else if (fallbackContainer.parentNode) {
+        fallbackContainer.parentNode.insertBefore(
+          navWrapper,
+          fallbackContainer.nextSibling
+        );
       } else {
-        container.parentNode.insertBefore(navWrapper, container.nextSibling);
+        throw new Error("No valid container found for navigation");
       }
-    }
-    if (prevBtn) {
-      prevBtn.addEventListener("click", handlePrev);
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener("click", handleNext);
+    } catch (error) {
+      console.warn("Navigation container error:", error.message);
+      // Fallback: append to document body
+      document.body.appendChild(navWrapper);
     }
   }
 
-  // nav and dot default styles
-  function injectCarouselStyles() {
-    // avoid injecting twice
-    if (document.getElementById("gsap-carousel-dots-styles")) return;
+  // carousel styles injection - injects complete CSS when navStyle=true
+  function injectCarouselStyles(config = {}) {
+    // Early return if already injected (performance)
+    const existingStyles = document.getElementById("gsap-carousel-styles");
+    if (existingStyles) return;
 
-    let css = "";
+    // Early return if navStyle is not requested (performance)
+    if (!config.navStyle) return;
 
-    // only add navigation styles if requested
-    if ((config.navigation && !config.prevNav) || !config.nextNav) {
-      css += `
+    // Complete CSS template - all styles in one place for maintainability
+    const completeCSS = `
     .gsap-carousel-nav {
       display: flex;
       justify-content: center;
@@ -187,18 +320,13 @@ function horizontalLoop(itemsContainer, config) {
       transform: scale(0.95);
     }
 
-    `;
-    }
-
-    // only add dots styles if requested
-    if (config.dots) {
-      css += `
     .gsap-carousel-dots {
       display: flex;
       justify-content: center;
       gap: 8px;
       padding: 10px 0;
     }
+
     .gsap-carousel-dot {
       width: 10px;
       height: 10px;
@@ -209,45 +337,107 @@ function horizontalLoop(itemsContainer, config) {
       padding: 0;
       transition: var(--gsap-carousel-dot-transition, background-color 0.3s);
     }
+
     .gsap-carousel-dot.active {
       background-color: var(--gsap-carousel-dot-bg-active, #333);
-    }
-    `;
-    }
+    }`;
 
-    // if there's nothing to inject, bail out
-    if (!css.trim()) return;
+    // Create and inject styles in one operation (optimal performance)
+    const styleElement = document.createElement("style");
+    styleElement.id = "gsap-carousel-styles";
+    styleElement.textContent = completeCSS;
 
-    const style = document.createElement("style");
-    style.id = "gsap-carousel-dots-styles";
-    style.textContent = css;
-    document.head.appendChild(style);
+    // Robust DOM insertion with fallback
+    (document.head || document.documentElement).appendChild(styleElement);
   }
-  injectCarouselStyles();
 
-  // --- helper function to setup dots ---
+  injectCarouselStyles(config);
+
   function setupDots(tl, items, container, config) {
-    let dotsWrapper = document.createElement("div");
-    dotsWrapper.className = "gsap-carousel-dots";
+    // Input validation
+    if (!tl?.toIndex || !Array.isArray(items) || !container || !config) {
+      console.warn("setupDots: Invalid parameters provided");
+      return [];
+    }
+
+    // Constants for better maintainability
+    const CSS_CLASSES = {
+      WRAPPER: "gsap-carousel-dots",
+      DOT: "gsap-carousel-dot",
+      ACTIVE: "active",
+    };
+
+    const DATA_ATTRIBUTES = {
+      INDEX: "data-index",
+    };
+
+    // Cache DOM query result
+    const customContainer = config.dotsContainer
+      ? document.querySelector(config.dotsContainer)
+      : null;
+
+    // Create dots wrapper
+    const dotsWrapper = document.createElement("div");
+    dotsWrapper.className = CSS_CLASSES.WRAPPER;
+
+    // Use DocumentFragment for efficient DOM manipulation
+    const fragment = document.createDocumentFragment();
     const dots = [];
+
+    // Create all dots in memory first
     for (let i = 0; i < items.length; i++) {
       const dot = document.createElement("button");
       dot.type = "button";
-      dot.className = "gsap-carousel-dot";
-      dot.setAttribute("data-index", i);
-      dot.addEventListener("click", () => tl.toIndex(i));
-      dotsWrapper.appendChild(dot);
+      dot.className = CSS_CLASSES.DOT;
+      dot.setAttribute(DATA_ATTRIBUTES.INDEX, i.toString());
+
+      // Set first dot as active during creation
+      if (i === 0) {
+        dot.classList.add(CSS_CLASSES.ACTIVE);
+      }
+
+      fragment.appendChild(dot);
       dots.push(dot);
     }
-    if (config.dotsContainer && document.querySelector(config.dotsContainer)) {
-      document.querySelector(config.dotsContainer).appendChild(dotsWrapper);
-    } else {
-      container.parentNode.insertBefore(dotsWrapper, container.nextSibling);
+
+    // Append all dots at once
+    dotsWrapper.appendChild(fragment);
+
+    // Use event delegation instead of individual listeners
+    dotsWrapper.addEventListener("click", handleDotClick);
+
+    // Insert dots wrapper into DOM
+    insertDotsWrapper(dotsWrapper, customContainer, container);
+
+    function handleDotClick(event) {
+      const dot = event.target.closest(`.${CSS_CLASSES.DOT}`);
+      if (!dot) return;
+
+      const index = parseInt(dot.getAttribute(DATA_ATTRIBUTES.INDEX), 10);
+      if (!isNaN(index) && typeof tl.toIndex === "function") {
+        tl.toIndex(index);
+      }
     }
-    // Set first dot active
-    if (dots[0]) {
-      dots[0].classList.add("active");
+
+    function insertDotsWrapper(wrapper, customContainer, fallbackContainer) {
+      try {
+        if (customContainer) {
+          customContainer.appendChild(wrapper);
+        } else if (fallbackContainer?.parentNode) {
+          fallbackContainer.parentNode.insertBefore(
+            wrapper,
+            fallbackContainer.nextSibling
+          );
+        } else {
+          console.warn(
+            "setupDots: Unable to insert dots wrapper - no valid container found"
+          );
+        }
+      } catch (error) {
+        console.error("setupDots: Error inserting dots wrapper:", error);
+      }
     }
+
     return dots;
   }
 
@@ -267,7 +457,7 @@ function horizontalLoop(itemsContainer, config) {
   }
 
   if (config.responsive) {
-    // Replace inline updateResponsiveStyles with helper function
+    //  updateResponsiveStyles
     const updateResponsiveStyles = () =>
       setupResponsiveStyles(container, items, config);
     updateResponsiveStyles();
@@ -467,7 +657,6 @@ function horizontalLoop(itemsContainer, config) {
       }
       return index;
     };
-
     tl.current = () => (indexIsDirty ? tl.closestIndex(true) : curIndex);
     tl.next = (vars) => toIndex(tl.current() + 1, vars);
     tl.previous = (vars) => toIndex(tl.current() - 1, vars);
@@ -542,7 +731,9 @@ function horizontalLoop(itemsContainer, config) {
     // Navigation buttons
     if (config.navigation === true) {
       const navContainer = items[0].parentNode;
-      setupNavigation(tl, navContainer, config);
+      // setupNavigation(tl, navContainer, config);
+      // Usage with cleanup capability
+      const navigation = setupNavigation(tl, navContainer, config);
     }
 
     // Setup dots navigation if enabled
@@ -610,6 +801,9 @@ function horizontalLoop(itemsContainer, config) {
       window.removeEventListener("resize", onResize);
       if (config.responsive && config._updateResponsiveStyles) {
         window.removeEventListener("resize", config._updateResponsiveStyles);
+      }
+      if (navigation) {
+        navigation.destroy(); // Clean up navigation
       }
       if (tl._removeKeyHandler) tl._removeKeyHandler();
     };
