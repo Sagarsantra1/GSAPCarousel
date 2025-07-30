@@ -613,17 +613,7 @@ function horizontalLoop(itemsContainer, config) {
     populateTimeline();
     populateOffsets();
     window.addEventListener("resize", onResize);
-
-    // Helper: debounce for resize
-    function debounce(fn, delay) {
-      let timer;
-      return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn.apply(this, args), delay);
-      };
-    }
     window.removeEventListener("resize", onResize);
-    window.addEventListener("resize", debounce(onResize, 100));
 
     function toIndex(index, vars) {
       vars = vars || {};
