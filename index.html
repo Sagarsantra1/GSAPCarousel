@@ -256,6 +256,9 @@ section {
     navStyle: true, // Enable custom navigation styles
     prevNav: "#investors-carousel-prev",
     gap: "20px",
+    onChange: (event) => {
+      console.log("Slide changed to index:", event.index);
+    },
     responsive: {
       0: { items: 1 },
       768: { items: 2 },

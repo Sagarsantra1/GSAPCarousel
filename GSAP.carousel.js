@@ -78,6 +78,27 @@ function horizontalLoop(itemsContainer, config) {
   if (typeof config.snap === "string") {
     config.snap = parseInt(config.snap, 10) || defaultConfig.snap;
   }
+  // Ensure gap is a valid CSS length
+  if (typeof config.gap === "number") {
+    config.gap = `${config.gap}px`;
+  } else if (typeof config.gap === "string") {
+    config.gap = config.gap.trim();
+  }
+
+  // helper to build the payload
+  function makePayload(i, tl, widths = []) {
+    return {
+      currentItem: items[i], // the slide’s DOM node
+      currentIndex: i, // 0‑based index
+      totalItems: items.length, // number of slides
+      progress: tl.progress(), // overall loop progress [0–1]
+      slideWidth: widths[i], // this slide’s width in px
+      config: {
+        // full config used
+        ...config,
+      },
+    };
+  }
 
   function initStyles(container, items, config) {
     container.style.setProperty("--gap", config.gap);
@@ -470,15 +491,6 @@ function horizontalLoop(itemsContainer, config) {
       lastIndex = 0,
       tl = gsap.timeline({
         repeat: config.repeat,
-        onUpdate:
-          onChange &&
-          function (self) {
-            let i = tl.closestIndex();
-            if (lastIndex !== i) {
-              lastIndex = i;
-              onChange(items[i], i);
-            }
-          },
         paused: config.autoplayTimeout ? true : config.paused,
         defaults: { ease: "none" },
         onReverseComplete: () =>
@@ -753,7 +765,7 @@ function horizontalLoop(itemsContainer, config) {
         if (lastIndex !== i) {
           lastIndex = i;
           if (config.dots === true) updateDots(i);
-          if (userOnChange) userOnChange(items[i], i);
+          if (userOnChange) userOnChange(makePayload(i, tl, widths));
         }
       });
     }
