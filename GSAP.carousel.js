@@ -13,11 +13,14 @@
  * @param {boolean} [options.navigation=false] - Enable prev/next buttons.
  * @param {boolean} [options.dots=false] - Enable pagination dots.
  * @param {number|false} [options.snap=1] - Snap increment (false to disable).
- * @param {Function|null} [options.onChange=null] - Callback on slide change (item, index).
+ * @param {Function|null} [options.onChange=null] - Callback on slide change (payload).
  * @param {boolean} [options.center=false] - Center mode (items loop from center).
+ * @param {boolean} [options.updateOnDragEnd=false] – If `true`, only fire `onChange` once a drag/throw action has settled.
  * @param {boolean} [options.navStyle=false] - Injects complete CSS for navigation styles.
+ * @param {Function|null} [config.onInitialized=null] - Called right after initialization completes.
  * @returns {GSAPTimeline} Configured GSAP timeline with extra controls and a .cleanup() method.
  */
+
 function horizontalLoop(itemsContainer, config) {
   // Get the container element, supporting both string selectors and DOM nodes
   const container =
@@ -56,6 +59,8 @@ function horizontalLoop(itemsContainer, config) {
     onChange: null,
     center: false,
     navStyle: false,
+    updateOnDragEnd: false,
+    onInitialized: null,
   };
 
   // Merge user config with defaults
@@ -93,6 +98,7 @@ function horizontalLoop(itemsContainer, config) {
       totalItems: items.length, // number of slides
       progress: tl.progress(), // overall loop progress [0–1]
       slideWidth: widths[i], // this slide’s width in px
+      timeline: tl, // the full GSAP timeline instance
       config: {
         // full config used
         ...config,
@@ -671,6 +677,11 @@ function horizontalLoop(itemsContainer, config) {
       tl.vars.onReverseComplete();
       tl.reverse();
     }
+
+    config.onInitialized?.(makePayload(0, tl, widths));
+
+    tl.config = config; // attach the full config to the timeline
+
     if (config.draggable && typeof Draggable === "function") {
       proxy = document.createElement("div");
       let wrap = gsap.utils.wrap(0, 1),
@@ -736,7 +747,6 @@ function horizontalLoop(itemsContainer, config) {
     // Navigation buttons
     if (config.navigation === true) {
       const navContainer = items[0].parentNode;
-      // setupNavigation(tl, navContainer, config);
       // Usage with cleanup capability
       const navigation = setupNavigation(tl, navContainer, config);
     }
@@ -757,17 +767,38 @@ function horizontalLoop(itemsContainer, config) {
       }
     }
 
-    // Patch onChange to also update dots
+    // Patch onChange to also update dots and fire after drag settles
     if (config.dots === true || onChange) {
       const userOnChange = onChange;
-      tl.eventCallback("onUpdate", function () {
-        let i = tl.closestIndex();
-        if (lastIndex !== i) {
-          lastIndex = i;
-          if (config.dots === true) updateDots(i);
-          if (userOnChange) userOnChange(makePayload(i, tl, widths));
+
+      //Regular onUpdate handler (when GSAP actually moves to a new slide)
+      tl.eventCallback("onUpdate", () => {
+        // only fire when not actively dragging or throwing
+        if (
+          !config.updateOnDragEnd ||
+          (!tl.draggable?.isDragging && !tl.draggable?.isThrowing)
+        ) {
+          const i = tl.closestIndex();
+          if (lastIndex !== i) {
+            lastIndex = i;
+            if (config.dots) updateDots(i);
+            userOnChange?.(makePayload(i, tl, widths));
+          }
         }
       });
+
+      // Once drag/throw finishes, fire one final update
+      if (tl.draggable && config.updateOnDragEnd) {
+        // preserve any existing handler
+        const origThrowComplete = tl.draggable.vars.onThrowComplete;
+        tl.draggable.vars.onThrowComplete = function () {
+          origThrowComplete?.call(this);
+          const i = tl.closestIndex(true);
+          lastIndex = i;
+          if (config.dots) updateDots(i);
+          userOnChange?.(makePayload(i, tl, widths));
+        };
+      }
     }
 
     // Accessibility: add aria-labels for nav/dots

@@ -250,6 +250,7 @@ section {
     repeat: -1,
     draggable: true,
     navigation: true,
+    // updateOnDragEnd: false, 
     dots: true,
     dotsContainer: ".nav-dots",
     nextNav: "#investors-carousel-next",
@@ -257,13 +258,19 @@ section {
     prevNav: "#investors-carousel-prev",
     gap: "20px",
     onChange: (event) => {
-      console.log("Slide changed to index:", event.index);
+      // console.log("Slide changed to index:", event.index);
+    },
+    onInitialized: (e) => {
+      // console.log("Carousel initialized",e.timeline)
     },
     responsive: {
       0: { items: 1 },
       768: { items: 2 },
       992: { items: 3 },
     },
-  });</script>
+  });
+  
+  
+  </script>
 </body>
 </html>
