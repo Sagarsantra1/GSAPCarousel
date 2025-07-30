@@ -651,7 +651,10 @@ function horizontalLoop(itemsContainer, config) {
     tl.next = (vars) => toIndex(tl.current() + 1, vars);
     tl.previous = (vars) => toIndex(tl.current() - 1, vars);
     tl.times = times;
-    tl.progress(1, true).progress(0, true);
+    config.center
+      ? tl.time(times[0], true)
+      : tl.progress(1, true).progress(0, true);
+
     if (config.reversed && !config.autoplayTimeout) {
       tl.vars.onReverseComplete();
       tl.reverse();
