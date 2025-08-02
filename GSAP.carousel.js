@@ -526,14 +526,7 @@ function addNavigationMethods(tl, items, config, state, log) {
 
       if (deep) {
         // Rebuild timeline if deep refresh
-        populateTimelineWithCenter(
-          tl,
-          tl._container,
-          items,
-          config,
-          config.center,
-          log
-        );
+        populateTimeline(tl, tl._container, items, config, log);
       }
 
       tl._populateOffsets();
@@ -797,10 +790,12 @@ function setupAutoplay(timeline, config, state, log) {
       clearTimeout(state.autoplayTimeout);
     } else if (config.autoplay) {
       // HANDLE REVERSED MODE:
-      if (config.reversed) {
-        timeline.reverse();
-      } else {
-        timeline.play();
+      if (!timeline.paused()) {
+        if (config.reversed) {
+          timeline.reverse();
+        } else {
+          timeline.play();
+        }
       }
       scheduleAutoplay(timeline, config, state, log);
     }
