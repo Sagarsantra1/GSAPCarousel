@@ -16,7 +16,7 @@
  * @param {number|false} [config.snap=1] - Snap increment (false to disable).
  * @param {Function|null} [config.onChange=null] - Callback on slide change.
  * @param {boolean} [config.center=false] - Center mode.
- * @param {boolean} [config.onlyOnComplete=false] - Fire onChange only when user interaction settles at final destination, not during intermediate slide changes.
+ * @param {boolean} [config.updateOnlyOnSettle=false] - Fire onChange only when user interaction settles at final destination, not during intermediate slide changes.
  * @param {boolean} [config.navStyle=false] - Inject navigation CSS styles.
  * @param {Function|null} [config.onInitialized=null] - Called after initialization.
  * @param {boolean} [config.debug=false] - Enable debug logging.
@@ -62,6 +62,7 @@ function horizontalLoop(itemsContainer, config = {}) {
     resizeObserver: null,
     autoplayTimeout: null,
     eventListeners: new Map(),
+    isProgrammaticNavigation: false,
   };
 
   try {
@@ -158,7 +159,7 @@ function validateAndMergeConfig(userConfig) {
     onChange: null,
     center: false,
     navStyle: false,
-    onlyOnComplete: false,
+    updateOnlyOnSettle: false,
     onInitialized: null,
     debug: false,
     // Production-specific options
@@ -571,6 +572,41 @@ function addNavigationMethods(tl, items, config, state, log) {
 
       scheduleAutoplay(this, config, state, log);
 
+      // Handle updateOnlyOnSettle for programmatic navigation
+      if (config.updateOnlyOnSettle && vars.duration !== 0) {
+        state.isProgrammaticNavigation = true;
+
+        // Store original onComplete callback if exists
+        const originalOnComplete = vars.onComplete;
+
+        vars.onComplete = function () {
+          // Reset the flag
+          state.isProgrammaticNavigation = false;
+
+          // Manually trigger the change detection for the final position
+          if (!state.isDestroyed) {
+            const finalIndex = tl.closestIndex(true);
+
+            // Update dots
+            updateDots(state.dots, finalIndex);
+
+            // Fire onChange callback
+            if (config.onChange) {
+              try {
+                config.onChange(createPayload(finalIndex, tl, items, config));
+              } catch (error) {
+                log("Error in onChange callback:", error);
+              }
+            }
+          }
+
+          // Call original onComplete if it existed
+          if (originalOnComplete) {
+            originalOnComplete.call(this);
+          }
+        };
+      }
+
       return vars.duration === 0
         ? this.time(timeWrap(time))
         : this.tweenTo(time, vars);
@@ -645,10 +681,12 @@ function setupChangeDetection(tl, items, config, state, lastIndex, log) {
     if (state.isDestroyed) return;
 
     try {
-      // If onlyOnComplete is true, skip updates during dragging/throwing
+      // If updateOnlyOnSettle is true, skip updates during dragging/throwing
       const shouldUpdate =
-        !config.onlyOnComplete ||
-        (!tl.draggable?.isDragging && !tl.draggable?.isThrowing);
+        !config.updateOnlyOnSettle ||
+        (!tl.draggable?.isDragging &&
+          !tl.draggable?.isThrowing &&
+          !state.isProgrammaticNavigation);
 
       if (shouldUpdate) {
         const currentIndex = this.closestIndex();
@@ -1408,8 +1446,8 @@ function setupDraggable(timeline, items, config, state, log) {
             }
           }
 
-          // Handle onlyOnComplete callback here
-          if (config.onlyOnComplete && (config.onChange || config.dots)) {
+          // Handle updateOnlyOnSettle callback here
+          if (config.updateOnlyOnSettle && (config.onChange || config.dots)) {
             try {
               const finalIndex = timeline.closestIndex(true);
               // Update dots if enabled
@@ -1431,7 +1469,7 @@ function setupDraggable(timeline, items, config, state, log) {
                 `onThrowComplete: Final position reached at index ${finalIndex}`
               );
             } catch (error) {
-              log("Error in onlyOnComplete callback:", error);
+              log("Error in updateOnlyOnSettle callback:", error);
             }
           }
 
