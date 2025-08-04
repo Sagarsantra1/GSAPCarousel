@@ -1377,7 +1377,7 @@ function setupDraggable(timeline, items, config, state, log) {
       overshootTolerance: 0,
       inertia: true,
       snap: snapFunction,
-      onRelease() {
+      onPress: function () {
         if (!state.isDestroyed) {
           // Ensure the stop autoplay when dragging
           if (
@@ -1387,7 +1387,10 @@ function setupDraggable(timeline, items, config, state, log) {
           ) {
             clearTimeout(state.autoplayTimeout);
           }
-
+        }
+      },
+      onRelease() {
+        if (!state.isDestroyed) {
           syncIndex();
           if (draggable.isThrowing) {
             state.indexIsDirty = true;
