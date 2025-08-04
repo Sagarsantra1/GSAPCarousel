@@ -818,6 +818,7 @@ function scheduleAutoplay(timeline, config, state, log) {
     return;
 
   clearTimeout(state.autoplayTimeout);
+  console.log("Scheduling autoplay with timeout:", config.autoplayTimeout);
 
   state.autoplayTimeout = setTimeout(() => {
     if (state.isDestroyed) return;
@@ -1380,6 +1381,15 @@ function setupDraggable(timeline, items, config, state, log) {
       snap: snapFunction,
       onRelease() {
         if (!state.isDestroyed) {
+          // Ensure the stop autoplay when dragging
+          if (
+            config.autoplay &&
+            config.autoplayTimeout > 0 &&
+            state.autoplayTimeout
+          ) {
+            clearTimeout(state.autoplayTimeout);
+          }
+
           syncIndex();
           if (draggable.isThrowing) {
             state.indexIsDirty = true;
@@ -1425,6 +1435,7 @@ function setupDraggable(timeline, items, config, state, log) {
           }
 
           if (config.autoplay && config.autoplayTimeout > 0) {
+            // console.warn("Autoplay is enabled. It will resume after dragging.");
             scheduleAutoplay(timeline, config, state, log);
           }
         }
