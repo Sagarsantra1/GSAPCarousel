@@ -226,7 +226,7 @@
         draggable: true,
         repeat: -1,
         autoplay: true,
-        // autoplayTimeout: 2000, //don't work on tl.pasue() of tl.play()
+        autoplayTimeout: 2000, //don't work on tl.pasue() of tl.play()
         // reversed: true,
         navigation: true,
         navStyle: true,
@@ -255,6 +255,14 @@
         accessibilityEnabled: true,
       });
       // GSDevTools.create();
+      document.querySelector(".wrapper").addEventListener("mouseenter", () => {
+        console.log("Mouse entered the wrapper");
+
+        investorsCarousel_tl.data[0].reversed(true);
+      });
+      document.querySelector(".wrapper").addEventListener("mouseleave", () => {
+        investorsCarousel_tl.data[0].reversed(false);
+      });
 
       const boxes = gsap.utils.toArray(".box");
 

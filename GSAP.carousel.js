@@ -818,13 +818,11 @@ function scheduleAutoplay(timeline, config, state, log) {
     return;
 
   clearTimeout(state.autoplayTimeout);
-  console.log("Scheduling autoplay with timeout:", config.autoplayTimeout);
 
   state.autoplayTimeout = setTimeout(() => {
     if (state.isDestroyed) return;
-
     try {
-      if (config.reversed) {
+      if (config.reversed || timeline.reversed()) {
         timeline.previous();
       } else {
         timeline.next();
