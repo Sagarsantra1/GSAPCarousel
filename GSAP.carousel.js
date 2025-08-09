@@ -108,26 +108,20 @@ function horizontalLoop(itemsContainer, config = {}) {
  */
 function validateAndGetContainer(itemsContainer) {
   try {
-    let container;
+    // Use GSAP's toArray to normalize input
+    const containers = gsap.utils.toArray(itemsContainer);
 
-    if (typeof itemsContainer === "string") {
-      container = document.querySelector(itemsContainer);
-      if (!container) {
-        console.error(
-          `horizontalLoop: Element with selector "${itemsContainer}" not found`
-        );
-        return null;
-      }
-    } else if (itemsContainer instanceof Element) {
-      container = itemsContainer;
-    } else {
+    if (!containers.length) {
       console.error(
-        "horizontalLoop: Container must be a string selector or DOM Element"
+        `horizontalLoop: No element found for selector or element:`,
+        itemsContainer
       );
       return null;
     }
 
-    // Additional container validation
+    const container = containers[0]; // take the first match
+
+    // Additional DOM attachment validation
     if (!container.parentNode) {
       console.error("horizontalLoop: Container must be attached to the DOM");
       return null;
@@ -794,21 +788,87 @@ function setupResponsiveStyles(container, items, config, log) {
   }
 }
 
-/**
- * Enhanced autoplay setup
- */
+// lightweight event manager for consistent add/remove
+function makeEventManager() {
+  const listeners = [];
+  return {
+    on(target, type, handler, options) {
+      target.addEventListener(type, handler, options);
+      listeners.push({ target, type, handler, options });
+      return handler;
+    },
+    offAll() {
+      for (const { target, type, handler, options } of listeners) {
+        try {
+          target.removeEventListener(type, handler, options);
+        } catch (e) {}
+      }
+      listeners.length = 0;
+    },
+  };
+}
+
+/* normalize kill for autoplay call */
+function killAutoplay(state) {
+  if (state.autoplayCall) {
+    try {
+      state.autoplayCall.kill();
+    } catch (e) {
+      console.log("Error killing autoplay call:", e);
+    }
+    state.autoplayCall = null;
+  }
+}
+
+/* schedule autoplay (self-reschedules) */
+function scheduleAutoplay(timeline, config, state, log) {
+  // guard conditions
+  if (config.paused || config.autoplayTimeout <= 0 || state.isDestroyed) return;
+
+  // clear any previous scheduled call
+  killAutoplay(state);
+
+  // schedule next tick
+  state.autoplayCall = gsap.delayedCall(config.autoplayTimeout, () => {
+    if (state.isDestroyed) return;
+
+    try {
+      // advance one step
+      if (config.reversed) {
+        timeline.previous();
+      } else {
+        timeline.next();
+      }
+    } catch (err) {
+      log?.error
+        ? log.error("Autoplay advance error", err)
+        : console.error(err);
+    }
+
+    // re-schedule the next autoplay only if still allowed
+    if (!config.paused && !state.isDestroyed && config.autoplayTimeout > 0) {
+      scheduleAutoplay(timeline, config, state, log);
+    }
+  });
+}
+
+/* improved setupAutoplay */
 function setupAutoplay(timeline, config, state, log) {
+  // ensure an event manager exists on state
+  if (!state.eventManager) state.eventManager = makeEventManager();
+
+  // nothing to do
   if (config.paused || config.autoplayTimeout <= 0) return;
 
-  // Clear any existing timer using gsap.delayedCall kill()
-  if (state.autoplayTimeout) state.autoplayTimeout.kill();
+  // ensure any previous call is killed
+  killAutoplay(state);
 
-  // Setup visibility change handling
+  // Page visibility handler (pause when hidden, resume when visible)
   const handleVisibilityChange = () => {
     if (state.isDestroyed) return;
     if (document.hidden) {
       timeline.pause();
-      if (state.autoplayTimeout) state.autoplayTimeout.kill();
+      killAutoplay(state);
     } else if (!config.paused) {
       if (!timeline.paused()) {
         config.reversed ? timeline.reverse() : timeline.play();
@@ -816,32 +876,28 @@ function setupAutoplay(timeline, config, state, log) {
       scheduleAutoplay(timeline, config, state, log);
     }
   };
-  addEventListener("visibilitychange", handleVisibilityChange);
-  state.eventListeners.set("visibilitychange", handleVisibilityChange);
 
-  if (!config.paused) {
-    scheduleAutoplay(timeline, config, state, log);
-  }
-}
-
-/**
- * Schedules autoplay with error handling
- */
-function scheduleAutoplay(timeline, config, state, log) {
-  if (config.paused || config.autoplayTimeout <= 0 || state.isDestroyed) return;
-
-  if (state.autoplayTimeout) state.autoplayTimeout.kill();
-
-  state.autoplayTimeout = gsap.delayedCall(config.autoplayTimeout, () => {
-    if (state.isDestroyed) return;
-    try {
-      config.reversed || timeline.reversed()
-        ? timeline.previous()
-        : timeline.next();
-    } catch (error) {
-      log("Error in autoplay:", error);
+  // Optionally pause on blur and resume on focus — reduces wasted CPU when user switches tabs/windows
+  const handleBlur = () => {
+    if (!state.isDestroyed) {
+      timeline.pause();
+      killAutoplay(state);
     }
+  };
+  const handleFocus = () => {
+    if (!state.isDestroyed && !config.paused)
+      scheduleAutoplay(timeline, config, state, log);
+  };
+
+  // Register events via event manager (so cleanup is trivial)
+  state.eventManager.on(document, "visibilitychange", handleVisibilityChange, {
+    passive: true,
   });
+  state.eventManager.on(window, "blur", handleBlur, { passive: true });
+  state.eventManager.on(window, "focus", handleFocus, { passive: true });
+
+  // Kick off autoplay
+  if (!config.paused) scheduleAutoplay(timeline, config, state, log);
 }
 
 /**
@@ -933,7 +989,7 @@ function createDotsElements(timeline, items, container, config, state, log) {
 
   // Clear any existing content
   customContainer.innerHTML = "";
-  dots = [];
+  const dots = [];
   for (let i = 0; i < items.length; i++) {
     const button = document.createElement("button");
     button.setAttribute("data-index", i.toString());
@@ -1088,8 +1144,11 @@ function createCleanupFunction(state, config, log) {
     state.isDestroyed = true;
 
     try {
-      // Clear timeouts
-      clearTimeout(state.autoplayTimeout);
+      // kill the delayedCall for autoplay
+      killAutoplay(state);
+
+      // Remove event listeners
+      state.eventManager.offAll();
 
       // Clean up ResizeObserver
       if (state.resizeObserver) {
@@ -1238,7 +1297,7 @@ function setupDraggable(timeline, items, config, state, log) {
       onPress: function () {
         if (!state.isDestroyed) {
           // Stop autoplay using gsap.delayedCall's kill()
-          if (state.autoplayTimeout) state.autoplayTimeout.kill();
+          killAutoplay(state);
         }
       },
       onRelease() {
