@@ -73,10 +73,18 @@
         color: black;
         transition: all 0.3s ease;
       }
-      .dots .gsap-carousel-dot {
+      .dots {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .dots > button {
         width: 12px;
         height: 12px;
         border-radius: 50%;
+        border: none;
+        padding: 0;
         background-color: var(--gsap-carousel-dot-bg, #ccc);
         cursor: pointer;
         padding: 0;
@@ -224,20 +232,16 @@
         speed: 5,
         gap: "20px",
         draggable: true,
-        repeat: -1,
-        paused: false, // uncomment to pause autoplay
+        // repeat: -1,
+        // paused: false, // uncomment to pause autoplay
         // autoplayTimeout: 2, //don't work on tl.pasue() of tl.play()
-        reversed: true,
-        navigation: true,
-        navStyle: true,
-        prevNav: ".prev",
-        nextNav: ".next",
-        // navigationContainer: null,
-        dots: true,
-        dotsContainer: ".dots",
+        // reversed: true,
+        prevNav: [".prev", { duration: 0.4, ease: "power4.out" }],
+        nextNav: [".next", { duration: 0.4, ease: "power4.out" }],
+        dots: [".dots", { duration: 0.4, ease: "power4.out" }],
         // snap: 1,
-        updateOnlyOnSettle: true,
-        // center: true,
+        // updateOnlyOnSettle: true,
+        center: true,
         onInitialized: (e) => {
           // console.log("Carousel initialized", e);
         },

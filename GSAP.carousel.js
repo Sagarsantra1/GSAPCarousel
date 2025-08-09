@@ -1,27 +1,33 @@
 /**
  * Creates a seamless, responsive, looping horizontal carousel using GSAP.
  * Production-ready version with enhanced error handling, performance, and accessibility.
+ *
  * @param {string|HTMLElement} containerEl - Selector or DOM element containing slide items.
  * @param {Object} [config] - Configuration options.
- * @param {Object|null} [config.responsive=null] - Responsive breakpoints mapping to itemsPerRow.
+ * @param {Object|null} [config.responsive=null] - Responsive breakpoints mapping (e.g., { 768: { items: 2 } }).
  * @param {number} [config.speed=1] - Speed multiplier (1 ≈ 100px/s).
- * @param {string} [config.gap='0px'] - Gap between items (CSS length).
- * @param {boolean} [config.draggable=false] - Enable Draggable support.
+ * @param {string} [config.gap="0px"] - Gap between items (CSS length).
+ * @param {boolean} [config.draggable=false] - Enable draggable support.
  * @param {number} [config.repeat=0] - Number of loop repeats (-1 for infinite).
- * @param {boolean} [config.paused=true] - Whether to start paused.
- * @param {number} [config.autoplayTimeout=0] - Delay between auto-advances (s).
- * @param {boolean} [config.reversed=false] - Reverse loop direction.
- * @param {boolean} [config.navigation=false] - Enable prev/next buttons.
- * @param {boolean} [config.dots=false] - Enable pagination dots.
- * @param {number|false} [config.snap=1] - Snap increment (false to disable).
- * @param {Function|null} [config.onChange=null] - Callback on slide change.
- * @param {boolean} [config.center=false] - Center mode.
- * @param {boolean} [config.updateOnlyOnSettle=false] - Fire onChange only when user interaction settles at final destination, not during intermediate slide changes.
- * @param {boolean} [config.navStyle=false] - Inject navigation CSS styles.
- * @param {Function|null} [config.onInitialized=null] - Called after initialization.
+ * @param {boolean} [config.paused=true] - Whether the carousel starts paused.
+ * @param {number} [config.autoplayTimeout=0] - Delay (in seconds) between auto-advances.
+ * @param {boolean} [config.reversed=false] - Reverse the loop direction.
+ * @param {any} [config.prevNav=null] - Previous navigation element or tuple ([element, options]).
+ * @param {any} [config.nextNav=null] - Next navigation element or tuple ([element, options]).
+ * @param {any} [config.dots=null] - Pagination dots container or tuple ([container, options]).
+ * @param {number|false} [config.snap=1] - Snap increment (set to false to disable snapping).
+ * @param {Function|null} [config.onChange=null] - Callback fired when the slide changes.
+ * @param {boolean} [config.center=false] - Enable center mode.
+ * @param {boolean} [config.updateOnlyOnSettle=false] - Fire onChange only when interaction settles.
+ * @param {Function|null} [config.onInitialized=null] - Callback fired after initialization.
  * @param {boolean} [config.debug=false] - Enable debug logging.
- * @returns {GSAPTimeline|null} Configured GSAP timeline with controls and cleanup method.
+ * @param {boolean} [config.errorRecovery=true] - Enable error recovery features.
+ * @param {boolean} [config.accessibilityEnabled=true] - Enable accessibility features.
+ *
+ * @returns {GSAPTimeline|null} Configured GSAP timeline with controls and a cleanup method.
  */
+
+// Debug logging
 function horizontalLoop(itemsContainer, config = {}) {
   // Environment checks
   if (typeof window === "undefined") {
@@ -48,9 +54,8 @@ function horizontalLoop(itemsContainer, config = {}) {
   // Configuration with enhanced validation
   const validatedConfig = validateAndMergeConfig(config);
   const { debug } = validatedConfig;
-
-  // Debug logging
   const log = createLogger(debug);
+
   log("Initializing horizontal loop with config:", validatedConfig);
 
   // State management
@@ -145,24 +150,18 @@ function validateAndMergeConfig(userConfig) {
     gap: "0px",
     draggable: false,
     repeat: 0,
-    autoplay: false,
     paused: true,
     autoplayTimeout: 0,
     reversed: false,
-    navigation: false,
     prevNav: null,
     nextNav: null,
-    navigationContainer: null,
-    dots: false,
-    dotsContainer: null,
+    dots: null,
     snap: 1,
     onChange: null,
     center: false,
-    navStyle: false,
     updateOnlyOnSettle: false,
     onInitialized: null,
     debug: false,
-    // Production-specific options
     errorRecovery: true,
     accessibilityEnabled: true,
   };
@@ -238,11 +237,6 @@ function initializeCarousel(container, items, config, state, log) {
     setupResponsiveHandling(container, items, config, state, log);
   }
 
-  // Inject styles if needed
-  if (config.navStyle) {
-    injectCarouselStyles();
-  }
-
   // Create GSAP context for proper cleanup
   return gsap.context(() => {
     const timeline = createTimeline(container, items, config, state, log);
@@ -251,7 +245,7 @@ function initializeCarousel(container, items, config, state, log) {
 
     // Setup additional features
     setupNavigation(timeline, container, config, state, log);
-    setupDots(timeline, items, container, config, state, log);
+    createDotsElements(timeline, items, container, config, state, log);
     setupAutoplay(timeline, config, state, log);
     setupAccessibility(timeline, container, items, config, state, log);
 
@@ -261,6 +255,8 @@ function initializeCarousel(container, items, config, state, log) {
     }
 
     state.timeline = timeline;
+    // Initial active dot positioning
+    updateDots(state.dots, 0);
 
     // Call initialization callback
     if (config.onInitialized) {
@@ -500,16 +496,12 @@ function getTotalWidth(items, widths, xPercents, startX, spaceBefore, gap) {
 /**
  * Adds navigation methods to timeline
  */
-/**
- * Adds navigation methods to timeline with center support
- */
 function addNavigationMethods(tl, items, config, state, log) {
   const length = items.length;
   const timeWrap = tl._timeWrap;
   let curIndex = 0;
   let indexIsDirty = false;
 
-  // Enhanced refresh function with center support
   const refresh = (deep) => {
     if (state.isDestroyed) return;
 
@@ -535,7 +527,6 @@ function addNavigationMethods(tl, items, config, state, log) {
     }
   };
 
-  // Enhanced toIndex method with center support
   tl.toIndex = function (index, vars = {}) {
     if (state.isDestroyed) return this;
 
@@ -857,7 +848,8 @@ function scheduleAutoplay(timeline, config, state, log) {
  * Enhanced navigation setup
  */
 function setupNavigation(timeline, container, config, state, log) {
-  if (!config.navigation) return;
+  // Updated: create navigation if either prevNav or nextNav exist
+  if (!(config.prevNav || config.nextNav)) return;
 
   try {
     const navigation = createNavigationElements(
@@ -872,163 +864,94 @@ function setupNavigation(timeline, container, config, state, log) {
   }
 }
 
-/**
- * Creates navigation elements
- */
 function createNavigationElements(timeline, container, config, log) {
-  const existingPrev = config.prevNav
-    ? document.querySelector(config.prevNav)
-    : null;
-  const existingNext = config.nextNav
-    ? document.querySelector(config.nextNav)
-    : null;
-  const navContainer = config.navigationContainer
-    ? document.querySelector(config.navigationContainer)
-    : null;
+  // Use tuple format for prevNav/nextNav
+  const existingPrev =
+    config.prevNav && Array.isArray(config.prevNav)
+      ? typeof config.prevNav[0] === "string"
+        ? document.querySelector(config.prevNav[0])
+        : config.prevNav[0]
+      : null;
+  const existingNext =
+    config.nextNav && Array.isArray(config.nextNav)
+      ? typeof config.nextNav[0] === "string"
+        ? document.querySelector(config.nextNav[0])
+        : config.nextNav[0]
+      : null;
 
-  let prevBtn = existingPrev;
-  let nextBtn = existingNext;
-  let wrapper = null;
-  const createdElements = [];
-
-  // Event handlers
-  const handlePrev = (e) => {
-    e.preventDefault();
-    timeline.previous();
-  };
-
-  const handleNext = (e) => {
-    e.preventDefault();
-    timeline.next();
-  };
-
-  // Create buttons if needed
-  if (!prevBtn || !nextBtn) {
-    wrapper = document.createElement("div");
-    wrapper.className = "gsap-carousel-nav";
-    createdElements.push(wrapper);
-
-    if (!prevBtn) {
-      prevBtn = createButton("Previous", "gsap-carousel-prev", handlePrev);
-      wrapper.appendChild(prevBtn);
-      createdElements.push(prevBtn);
-    }
-
-    if (!nextBtn) {
-      nextBtn = createButton("Next", "gsap-carousel-next", handleNext);
-      wrapper.appendChild(nextBtn);
-      createdElements.push(nextBtn);
-    }
-
-    // Append to container
-    if (navContainer) {
-      navContainer.appendChild(wrapper);
-    } else if (container.parentNode) {
-      container.parentNode.insertBefore(wrapper, container.nextSibling);
-    }
+  if (!existingPrev && !existingNext) {
+    log("Navigation: No navigation elements provided.");
+    return { prevButton: null, nextButton: null, wrapper: null, destroy() {} };
+  }
+  if (!existingPrev) {
+    log("Navigation: Previous element not provided.");
+  }
+  if (!existingNext) {
+    log("Navigation: Next element not provided.");
   }
 
-  // Add listeners to existing buttons
+  // Attach event handlers using provided GSAP options (if any)
+  const handlePrev = (e) => {
+    e.preventDefault();
+    timeline.previous(
+      config.prevNav && config.prevNav[1] ? config.prevNav[1] : {}
+    );
+  };
+  const handleNext = (e) => {
+    e.preventDefault();
+    timeline.next(config.nextNav && config.nextNav[1] ? config.nextNav[1] : {});
+  };
+
   if (existingPrev) existingPrev.addEventListener("click", handlePrev);
   if (existingNext) existingNext.addEventListener("click", handleNext);
 
   return {
+    prevButton: existingPrev,
+    nextButton: existingNext,
+    wrapper: null,
     destroy() {
       if (existingPrev) existingPrev.removeEventListener("click", handlePrev);
       if (existingNext) existingNext.removeEventListener("click", handleNext);
-
-      createdElements.forEach((el) => {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      });
     },
-    prevButton: prevBtn,
-    nextButton: nextBtn,
-    wrapper,
   };
 }
 
-/**
- * Creates a navigation button
- */
-function createButton(text, className, handler) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.textContent = text;
-  button.className = className;
-  button.setAttribute("aria-label", text);
-  button.addEventListener("click", handler);
-  return button;
-}
+// ---------------------------------------------
+function createDotsElements(timeline, items, container, config, state, log) {
+  // Use config.dots as the custom container if provided in tuple form
+  const customContainer =
+    config.dots && Array.isArray(config.dots)
+      ? typeof config.dots[0] === "string"
+        ? document.querySelector(config.dots[0])
+        : config.dots[0]
+      : null;
 
-/**
- * Enhanced dots setup
- */
-function setupDots(timeline, items, container, config, state, log) {
-  if (!config.dots) return;
-
-  try {
-    const dots = createDotsElements(timeline, items, container, config, log);
-    state.dots = dots;
-  } catch (error) {
-    log("Error setting up dots:", error);
+  if (!customContainer) {
+    log("Dots: No dots container provided.");
+    return [];
   }
-}
 
-/**
- * Creates dots elements
- */
-function createDotsElements(timeline, items, container, config, log) {
-  const customContainer = config.dotsContainer
-    ? document.querySelector(config.dotsContainer)
-    : null;
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "gsap-carousel-dots";
-
-  const fragment = document.createDocumentFragment();
-  const dots = [];
-
-  // Create dots
+  // Clear any existing content
+  customContainer.innerHTML = "";
+  dots = [];
   for (let i = 0; i < items.length; i++) {
-    const dot = document.createElement("button");
-    dot.type = "button";
-    dot.className = "gsap-carousel-dot";
-    dot.setAttribute("data-index", i.toString());
-    dot.setAttribute("aria-label", `Go to slide ${i + 1}`);
-
-    if (i === 0) dot.classList.add("active");
-
-    fragment.appendChild(dot);
-    dots.push(dot);
-  }
-
-  wrapper.appendChild(fragment);
-
-  // Event delegation
-  wrapper.addEventListener("click", (e) => {
-    const dot = e.target.closest(".gsap-carousel-dot");
-    if (!dot) return;
-
-    const index = parseInt(dot.getAttribute("data-index"), 10);
-    if (!isNaN(index)) {
-      timeline.toIndex(index);
-    }
-  });
-
-  // Keyboard navigation
-  wrapper.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
+    const button = document.createElement("button");
+    button.setAttribute("data-index", i.toString());
+    button.setAttribute("aria-label", `Go to slide ${i + 1}`);
+    button.addEventListener("click", (e) => {
       e.preventDefault();
-      e.target.click();
-    }
-  });
-
-  // Append to container
-  if (customContainer) {
-    customContainer.appendChild(wrapper);
-  } else if (container.parentNode) {
-    container.parentNode.insertBefore(wrapper, container.nextSibling);
+      timeline.toIndex(i, config.dots && config.dots[1] ? config.dots[1] : {});
+    });
+    button.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        button.click();
+      }
+    });
+    dots.push(button);
+    customContainer.appendChild(button);
   }
+  state.dots = dots;
 
   return dots;
 }
@@ -1152,91 +1075,6 @@ function initStyles(container, items, config) {
   } catch (error) {
     console.warn("Error initializing styles:", error);
   }
-}
-
-/**
- * Injects carousel styles
- */
-function injectCarouselStyles() {
-  if (document.getElementById("gsap-carousel-styles")) return;
-
-  const css = `
-    .gsap-carousel-nav {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 0;
-    }
-    
-    .gsap-carousel-nav button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 12px;
-      font-size: 14px;
-      line-height: 1;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background-color: #fff;
-      color: #333;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.2s ease;
-    }
-    
-    .gsap-carousel-nav button:hover:not(:disabled) {
-      background-color: #f5f5f5;
-      border-color: #999;
-    }
-    
-    .gsap-carousel-nav button:active:not(:disabled) {
-      transform: scale(0.95);
-    }
-    
-    .gsap-carousel-nav button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .gsap-carousel-dots {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 0;
-    }
-    
-    .gsap-carousel-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background-color: var(--gsap-carousel-dot-bg, #ccc);
-      cursor: pointer;
-      border: none;
-      padding: 0;
-      transition: all 0.3s ease;
-    }
-    
-    .gsap-carousel-dot:hover {
-      background-color: var(--gsap-carousel-dot-bg-hover, #999);
-    }
-    
-    .gsap-carousel-dot.active {
-      background-color: var(--gsap-carousel-dot-bg-active, #333);
-    }
-    
-    @media (prefers-reduced-motion: reduce) {
-      .gsap-carousel-nav button,
-      .gsap-carousel-dot {
-        transition: none;
-      }
-    }
-  `;
-
-  const style = document.createElement("style");
-  style.id = "gsap-carousel-styles";
-  style.textContent = css;
-  (document.head || document.documentElement).appendChild(style);
 }
 
 /**
