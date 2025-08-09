@@ -8,8 +8,8 @@
  * @param {string} [config.gap='0px'] - Gap between items (CSS length).
  * @param {boolean} [config.draggable=false] - Enable Draggable support.
  * @param {number} [config.repeat=0] - Number of loop repeats (-1 for infinite).
- * @param {boolean} [config.autoplay=false] - Auto-advance slides.
- * @param {number} [config.autoplayTimeout=0] - Delay between auto-advances (ms).
+ * @param {boolean} [config.paused=true] - Whether to start paused.
+ * @param {number} [config.autoplayTimeout=0] - Delay between auto-advances (s).
  * @param {boolean} [config.reversed=false] - Reverse loop direction.
  * @param {boolean} [config.navigation=false] - Enable prev/next buttons.
  * @param {boolean} [config.dots=false] - Enable pagination dots.
@@ -176,13 +176,6 @@ function validateAndMergeConfig(userConfig) {
     } else {
       console.warn(`horizontalLoop: Unknown config option "${key}"`);
     }
-  }
-
-  // Handle autoplay/paused relationship
-  if ("autoplay" in userConfig) {
-    config.paused = !config.autoplay;
-  } else if (!("paused" in userConfig)) {
-    config.paused = true;
   }
 
   // Validate responsive configuration
@@ -814,35 +807,27 @@ function setupResponsiveStyles(container, items, config, log) {
  * Enhanced autoplay setup
  */
 function setupAutoplay(timeline, config, state, log) {
-  if (!config.autoplay || config.autoplayTimeout <= 0) return;
+  if (config.paused || config.autoplayTimeout <= 0) return;
 
-  // Clear any existing timeout
-  clearTimeout(state.autoplayTimeout);
+  // Clear any existing timer using gsap.delayedCall kill()
+  if (state.autoplayTimeout) state.autoplayTimeout.kill();
 
   // Setup visibility change handling
   const handleVisibilityChange = () => {
     if (state.isDestroyed) return;
-
     if (document.hidden) {
       timeline.pause();
-      clearTimeout(state.autoplayTimeout);
-    } else if (config.autoplay) {
-      // HANDLE REVERSED MODE:
+      if (state.autoplayTimeout) state.autoplayTimeout.kill();
+    } else if (!config.paused) {
       if (!timeline.paused()) {
-        if (config.reversed) {
-          timeline.reverse();
-        } else {
-          timeline.play();
-        }
+        config.reversed ? timeline.reverse() : timeline.play();
       }
       scheduleAutoplay(timeline, config, state, log);
     }
   };
-
   addEventListener("visibilitychange", handleVisibilityChange);
   state.eventListeners.set("visibilitychange", handleVisibilityChange);
 
-  // Initial autoplay
   if (!config.paused) {
     scheduleAutoplay(timeline, config, state, log);
   }
@@ -852,23 +837,20 @@ function setupAutoplay(timeline, config, state, log) {
  * Schedules autoplay with error handling
  */
 function scheduleAutoplay(timeline, config, state, log) {
-  if (!config.autoplay || config.autoplayTimeout <= 0 || state.isDestroyed)
-    return;
+  if (config.paused || config.autoplayTimeout <= 0 || state.isDestroyed) return;
 
-  clearTimeout(state.autoplayTimeout);
+  if (state.autoplayTimeout) state.autoplayTimeout.kill();
 
-  state.autoplayTimeout = setTimeout(() => {
+  state.autoplayTimeout = gsap.delayedCall(config.autoplayTimeout, () => {
     if (state.isDestroyed) return;
     try {
-      if (config.reversed || timeline.reversed()) {
-        timeline.previous();
-      } else {
-        timeline.next();
-      }
+      config.reversed || timeline.reversed()
+        ? timeline.previous()
+        : timeline.next();
     } catch (error) {
       log("Error in autoplay:", error);
     }
-  }, config.autoplayTimeout);
+  });
 }
 
 /**
@@ -1417,14 +1399,8 @@ function setupDraggable(timeline, items, config, state, log) {
       snap: snapFunction,
       onPress: function () {
         if (!state.isDestroyed) {
-          // Ensure the stop autoplay when dragging
-          if (
-            config.autoplay &&
-            config.autoplayTimeout > 0 &&
-            state.autoplayTimeout
-          ) {
-            clearTimeout(state.autoplayTimeout);
-          }
+          // Stop autoplay using gsap.delayedCall's kill()
+          if (state.autoplayTimeout) state.autoplayTimeout.kill();
         }
       },
       onRelease() {
@@ -1473,7 +1449,7 @@ function setupDraggable(timeline, items, config, state, log) {
             }
           }
 
-          if (config.autoplay && config.autoplayTimeout > 0) {
+          if (!config.paused && config.autoplayTimeout > 0) {
             // console.warn("Autoplay is enabled. It will resume after dragging.");
             scheduleAutoplay(timeline, config, state, log);
           }
