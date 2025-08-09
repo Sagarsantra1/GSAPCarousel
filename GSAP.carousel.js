@@ -41,7 +41,7 @@ function horizontalLoop(itemsContainer, config = {}) {
   }
 
   // Validate and get container element
-  const container = validateAndGetContainer(itemsContainer);
+  const container = resolveElement(itemsContainer);
   if (!container) return null;
 
   // Validate children
@@ -99,37 +99,6 @@ function horizontalLoop(itemsContainer, config = {}) {
   } catch (error) {
     console.error("horizontalLoop: Initialization failed:", error);
     cleanup(state, validatedConfig, log);
-    return null;
-  }
-}
-
-/**
- * Validates container element and returns it if valid
- */
-function validateAndGetContainer(itemsContainer) {
-  try {
-    // Use GSAP's toArray to normalize input
-    const containers = gsap.utils.toArray(itemsContainer);
-
-    if (!containers.length) {
-      console.error(
-        `horizontalLoop: No element found for selector or element:`,
-        itemsContainer
-      );
-      return null;
-    }
-
-    const container = containers[0]; // take the first match
-
-    // Additional DOM attachment validation
-    if (!container.parentNode) {
-      console.error("horizontalLoop: Container must be attached to the DOM");
-      return null;
-    }
-
-    return container;
-  } catch (error) {
-    console.error("horizontalLoop: Error validating container:", error);
     return null;
   }
 }
@@ -219,6 +188,65 @@ function createLogger(debug) {
   return debug ? console.log.bind(console, "[HorizontalLoop]") : () => {};
 }
 
+// lightweight event manager for consistent add/remove
+function makeEventManager() {
+  const listeners = [];
+  return {
+    on(target, type, handler, options) {
+      target.addEventListener(type, handler, options);
+      listeners.push({ target, type, handler, options });
+      return handler;
+    },
+    offAll() {
+      for (const { target, type, handler, options } of listeners) {
+        try {
+          target.removeEventListener(type, handler, options);
+        } catch (e) {}
+      }
+      listeners.length = 0;
+    },
+    // optional: remove a single listener
+    off(target, type, handler) {
+      for (let i = listeners.length - 1; i >= 0; i--) {
+        const rec = listeners[i];
+        if (
+          rec.target === target &&
+          rec.type === type &&
+          rec.handler === handler
+        ) {
+          try {
+            rec.target.removeEventListener(rec.type, rec.handler, rec.options);
+          } catch (e) {}
+          listeners.splice(i, 1);
+        }
+      }
+    },
+  };
+}
+
+// Resolve element from selector or Element
+function resolveElement(target) {
+  if (typeof target === "string") {
+    // Use GSAP utils for better selector handling (works with NodeLists, etc.)
+    const el = gsap.utils.toArray(target)[0] || null;
+    if (!el) {
+      console.error(
+        `resolveElement: No element found for selector "${target}"`
+      );
+    }
+    return el;
+  }
+
+  if (target instanceof Element) {
+    return target;
+  }
+
+  console.error(
+    `resolveElement: Invalid target, expected selector or Element. Not "${typeof target}" ${target}"`
+  );
+  return null;
+}
+
 /**
  * Main carousel initialization function
  */
@@ -242,11 +270,6 @@ function initializeCarousel(container, items, config, state, log) {
     createDotsElements(timeline, items, container, config, state, log);
     setupAutoplay(timeline, config, state, log);
     setupAccessibility(timeline, container, items, config, state, log);
-
-    // Setup error recovery
-    if (config.errorRecovery) {
-      setupErrorRecovery(timeline, config, log);
-    }
 
     state.timeline = timeline;
     // Initial active dot positioning
@@ -788,26 +811,6 @@ function setupResponsiveStyles(container, items, config, log) {
   }
 }
 
-// lightweight event manager for consistent add/remove
-function makeEventManager() {
-  const listeners = [];
-  return {
-    on(target, type, handler, options) {
-      target.addEventListener(type, handler, options);
-      listeners.push({ target, type, handler, options });
-      return handler;
-    },
-    offAll() {
-      for (const { target, type, handler, options } of listeners) {
-        try {
-          target.removeEventListener(type, handler, options);
-        } catch (e) {}
-      }
-      listeners.length = 0;
-    },
-  };
-}
-
 /* normalize kill for autoplay call */
 function killAutoplay(state) {
   if (state.autoplayCall) {
@@ -900,155 +903,280 @@ function setupAutoplay(timeline, config, state, log) {
   if (!config.paused) scheduleAutoplay(timeline, config, state, log);
 }
 
-/**
- * Enhanced navigation setup
- */
-function setupNavigation(timeline, container, config, state, log) {
-  // Updated: create navigation if either prevNav or nextNav exist
-  if (!(config.prevNav || config.nextNav)) return;
+// concise navigation: no auto-creation of buttons, uses resolveElement & makeEventManager
 
+function setupNavigation(timeline, container, config, state, log) {
+  if (!(config.prevNav || config.nextNav)) return;
+  if (!state.eventManager) state.eventManager = makeEventManager();
   try {
-    const navigation = createNavigationElements(
+    state.navigation = createNavigationElements(
       timeline,
       container,
       config,
+      state,
       log
     );
-    state.navigation = navigation;
-  } catch (error) {
-    log("Error setting up navigation:", error);
+  } catch (err) {
+    (log?.error || console.error)("setupNavigation error:", err);
   }
 }
 
-function createNavigationElements(timeline, container, config, log) {
-  // Use tuple format for prevNav/nextNav
-  const existingPrev =
-    config.prevNav && Array.isArray(config.prevNav)
-      ? typeof config.prevNav[0] === "string"
-        ? document.querySelector(config.prevNav[0])
-        : config.prevNav[0]
-      : null;
-  const existingNext =
-    config.nextNav && Array.isArray(config.nextNav)
-      ? typeof config.nextNav[0] === "string"
-        ? document.querySelector(config.nextNav[0])
-        : config.nextNav[0]
-      : null;
+function createNavigationElements(timeline, container, config, state, log) {
+  const em = state.eventManager;
 
-  if (!existingPrev && !existingNext) {
-    log("Navigation: No navigation elements provided.");
-    return { prevButton: null, nextButton: null, wrapper: null, destroy() {} };
-  }
-  if (!existingPrev) {
-    log("Navigation: Previous element not provided.");
-  }
-  if (!existingNext) {
-    log("Navigation: Next element not provided.");
-  }
+  // Ensure input is always in the form [elementOrSelector, options]
+  const normalize = (v) => (Array.isArray(v) ? v : [v, {}]);
+  const [prevCand, prevOpts] = normalize(config.prevNav || null);
+  const [nextCand, nextOpts] = normalize(config.nextNav || null);
 
-  // Attach event handlers using provided GSAP options (if any)
-  const handlePrev = (e) => {
-    e.preventDefault();
-    timeline.previous(
-      config.prevNav && config.prevNav[1] ? config.prevNav[1] : {}
-    );
+  // Resolve to actual DOM elements (supports selector strings or direct elements)
+  const prevEl = prevCand ? resolveElement(prevCand) : null;
+  const nextEl = nextCand ? resolveElement(nextCand) : null;
+
+  // If neither nav button exists, return a no-op
+  if (!prevEl && !nextEl) return { prevButton: null, nextButton: null };
+
+  // Create handler that moves the timeline forward/back
+  const makeHandler = (dir, opts) => {
+    return (e) => {
+      if (state.isDestroyed) return;
+
+      // Ignore irrelevant key presses
+      if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+
+      // Prevent default for keyboard activation or anchor clicks
+      if (
+        e.type === "keydown" ||
+        (e.type === "click" && e.target.tagName === "A")
+      )
+        e.preventDefault();
+
+      try {
+        dir === "prev" ? timeline.previous(opts) : timeline.next(opts);
+      } catch (err) {
+        (log?.error || console.error)("nav handler error:", err);
+      }
+    };
   };
-  const handleNext = (e) => {
-    e.preventDefault();
-    timeline.next(config.nextNav && config.nextNav[1] ? config.nextNav[1] : {});
+
+  const prevHandler = prevEl ? makeHandler("prev", prevOpts) : null;
+  const nextHandler = nextEl ? makeHandler("next", nextOpts) : null;
+
+  // Keydown handler to trigger click on Enter/Space
+  const keyHandler = (e) => {
+    if (e.key === "Enter" || e.key === " ")
+      e.target instanceof HTMLElement && e.target.click();
   };
 
-  if (existingPrev) existingPrev.addEventListener("click", handlePrev);
-  if (existingNext) existingNext.addEventListener("click", handleNext);
+  // Attach handlers and make elements keyboard-accessible
+  if (prevEl) {
+    prevEl.setAttribute("role", "button");
+    if (!nextEl.hasAttribute("aria-label"))
+      nextEl.setAttribute("aria-label", "Next slide");
+    prevEl.tabIndex = prevEl.tabIndex >= 0 ? prevEl.tabIndex : 0;
+    em.on(prevEl, "click", prevHandler);
+    em.on(prevEl, "keydown", keyHandler);
+  }
+  if (nextEl) {
+    nextEl.setAttribute("role", "button");
+    if (!prevEl.hasAttribute("aria-label"))
+      prevEl.setAttribute("aria-label", "Previous slide");
+    nextEl.tabIndex = nextEl.tabIndex >= 0 ? nextEl.tabIndex : 0;
+    em.on(nextEl, "click", nextHandler);
+    em.on(nextEl, "keydown", keyHandler);
+  }
 
-  return {
-    prevButton: existingPrev,
-    nextButton: existingNext,
-    wrapper: null,
-    destroy() {
-      if (existingPrev) existingPrev.removeEventListener("click", handlePrev);
-      if (existingNext) existingNext.removeEventListener("click", handleNext);
-    },
-  };
+  return { prevButton: prevEl, nextButton: nextEl };
 }
 
-// ---------------------------------------------
+// createDotsElements: uses delegation, batches DOM writes, links dots <-> slides for accessibility
 function createDotsElements(timeline, items, container, config, state, log) {
-  // Use config.dots as the custom container if provided in tuple form
-  const customContainer =
-    config.dots && Array.isArray(config.dots)
-      ? typeof config.dots[0] === "string"
-        ? document.querySelector(config.dots[0])
-        : config.dots[0]
-      : null;
+  // ensure event manager
+  if (!state.eventManager) state.eventManager = makeEventManager();
+  const em = state.eventManager;
 
-  if (!customContainer) {
-    log("Dots: No dots container provided.");
+  // support tuple [selectorOrElement, opts] or string/element
+  const dotsCandidate = Array.isArray(config.dots)
+    ? config.dots[0]
+    : config.dots;
+  const dotsEl = dotsCandidate ? resolveElement(dotsCandidate) : null;
+
+  if (!dotsEl) {
+    (log?.debug || console.debug)("Dots: No dots container provided.");
+    state.dots = [];
     return [];
   }
 
-  // Clear any existing content
-  customContainer.innerHTML = "";
-  const dots = [];
-  for (let i = 0; i < items.length; i++) {
-    const button = document.createElement("button");
-    button.setAttribute("data-index", i.toString());
-    button.setAttribute("aria-label", `Go to slide ${i + 1}`);
-    button.addEventListener("click", (e) => {
-      e.preventDefault();
-      timeline.toIndex(i, config.dots && config.dots[1] ? config.dots[1] : {});
-    });
-    button.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        button.click();
-      }
-    });
-    dots.push(button);
-    customContainer.appendChild(button);
-  }
-  state.dots = dots;
+  // clear content once using a fragment to minimize reflow
+  dotsEl.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  const buttons = new Array(items.length);
 
-  return dots;
+  for (let i = 0; i < items.length; i++) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "carousel-dot";
+    btn.dataset.index = String(i);
+    btn.id = `carousel-dot-${i}`;
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", "false");
+    btn.setAttribute("aria-label", `Go to slide ${i + 1}`);
+    btn.tabIndex = 0;
+    frag.appendChild(btn);
+    buttons[i] = btn;
+  }
+
+  // set container role (tablist) for better semantics
+  dotsEl.setAttribute("role", "tablist");
+  dotsEl.innerHTML = ""; // ensure empty
+  dotsEl.appendChild(frag);
+
+  // store for later updates
+  state.dots = buttons;
+
+  // single delegated click handler
+  const onClick = (e) => {
+    if (state.isDestroyed) return;
+    const btn = e.target.closest("button[data-index]");
+    if (!btn || !dotsEl.contains(btn)) return;
+    // allow anchors default only if not our buttons
+    e.preventDefault();
+    const idx = parseInt(btn.dataset.index, 10);
+    timeline.toIndex(
+      idx,
+      Array.isArray(config.dots) && config.dots[1] ? config.dots[1] : {}
+    );
+  };
+
+  // single delegated keyboard handler for Enter/Space
+  const onKeydown = (e) => {
+    if (state.isDestroyed) return;
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const btn = e.target.closest("button[data-index]");
+    if (!btn || !dotsEl.contains(btn)) return;
+    e.preventDefault();
+    btn.click();
+  };
+
+  em.on(dotsEl, "click", onClick);
+  em.on(dotsEl, "keydown", onKeydown);
+
+  // set initial active dot (index 0)
+  updateDots(
+    state.dots,
+    timeline.closestIndex ? timeline.closestIndex(true) : 0
+  );
+
+  return buttons;
 }
 
-/**
- * Updates active dot
- */
+// improved updateDots: sets aria-selected and aria-current and toggles active class
 function updateDots(dots, index) {
   if (!dots || !dots.length) return;
-
-  try {
-    dots.forEach((dot, i) => {
-      dot.classList.toggle("active", i === index);
-      dot.setAttribute("aria-selected", i === index ? "true" : "false");
-    });
-  } catch (error) {
-    // Silent fail for dots update
+  // simple, safe loop (avoid try/catch swallowing errors)
+  for (let i = 0; i < dots.length; i++) {
+    const dot = dots[i];
+    const active = i === index;
+    dot.classList.toggle("active", active);
+    dot.setAttribute("aria-selected", active ? "true" : "false");
+    // aria-current is a helpful state for assistive tech (use "true" when active)
+    if (active) dot.setAttribute("aria-current", "true");
+    else dot.removeAttribute("aria-current");
   }
 }
 
-/**
- * Sets up accessibility features
- */
 function setupAccessibility(timeline, container, items, config, state, log) {
   if (!config.accessibilityEnabled) return;
 
-  try {
-    // Container accessibility
-    container.setAttribute("role", "region");
-    container.setAttribute("aria-label", "carousel");
+  // ensure event manager
+  if (!state.eventManager) state.eventManager = makeEventManager();
+  const em = state.eventManager;
 
-    // Items accessibility
-    items.forEach((item, index) => {
+  try {
+    // container accessible name/role
+    const label = config.ariaLabel || "Carousel";
+    container.setAttribute("role", "region");
+    container.setAttribute("aria-roledescription", "carousel");
+    container.setAttribute("aria-label", label);
+    // make container focusable so keyboard arrow events are caught
+    if (!container.hasAttribute("tabindex"))
+      container.setAttribute("tabindex", "0");
+
+    // ensure slides have IDs and initial aria attributes
+    items.forEach((item, idx) => {
+      if (!item.id) item.id = `hloop-slide-${Date.now().toString(36)}-${idx}`;
       item.setAttribute("role", "group");
       item.setAttribute("aria-roledescription", "slide");
-      item.setAttribute("aria-label", `${index + 1} of ${items.length}`);
+      item.setAttribute("aria-label", `${idx + 1} of ${items.length}`);
+      // hide by default; active slide will be revealed by updateActive
+      item.setAttribute("aria-hidden", "true");
+      item.tabIndex = -1;
     });
 
-    // Keyboard navigation
+    // create (or reuse) an offscreen live region for announcements
+    let live = state.liveRegion;
+    if (!live || !document.body.contains(live)) {
+      live = document.createElement("div");
+      live.className = "hloop-sr-live";
+      live.setAttribute("aria-live", "polite");
+      live.setAttribute("aria-atomic", "true");
+      // visually hide but keep for screen readers
+      live.style.cssText =
+        "position: absolute !important; width: 1px; height: 1px; margin: -1px; border: 0; padding: 0; clip: rect(0 0 0 0); overflow: hidden;";
+      (container.parentNode || document.body).appendChild(live);
+      state.liveRegion = live;
+    }
+
+    // function to update active slide accessibility state
+    const updateActive = (index, announce = true, focus = false) => {
+      index =
+        typeof index === "number"
+          ? index
+          : timeline.closestIndex
+          ? timeline.closestIndex(true)
+          : 0;
+      if (index < 0 || index >= items.length) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const slide = items[i];
+        const isActive = i === index;
+        slide.setAttribute("aria-hidden", isActive ? "false" : "true");
+        slide.tabIndex = isActive ? 0 : -1;
+        slide.classList.toggle("is-active", isActive);
+      }
+
+      // announce change
+      if (announce && state.liveRegion) {
+        // prefer an explicit label inside the slide if available (e.g., heading)
+        const slide = items[index];
+        const heading = slide.querySelector(
+          "h1,h2,h3,h4,h5,h6,[data-carousel-title]"
+        );
+        const title = heading
+          ? heading.textContent.trim()
+          : slide.getAttribute("aria-label") ||
+            `Slide ${index + 1} of ${items.length}`;
+        state.liveRegion.textContent = `${title}`;
+      }
+
+      // optionally move focus to the active slide
+      if (focus) {
+        try {
+          items[index].focus();
+        } catch (e) {
+          /* ignore */
+        }
+      }
+    };
+
+    // initial activation of slide 0
+    updateActive(0, false, false);
+
+    // keyboard navigation on container (left/right/home/end)
     const handleKeydown = (e) => {
-      if (!container.contains(document.activeElement)) return;
+      // only react when container has focus or focus is within an item
+      const activeEl = document.activeElement;
+      if (!container.contains(activeEl) && activeEl !== container) return;
 
       switch (e.key) {
         case "ArrowLeft":
@@ -1070,47 +1198,58 @@ function setupAccessibility(timeline, container, items, config, state, log) {
       }
     };
 
-    container.addEventListener("keydown", handleKeydown);
-    container.setAttribute("tabindex", "0");
+    em.on(container, "keydown", handleKeydown);
 
-    // Store cleanup
-    state.eventListeners.set("keydown", handleKeydown);
-  } catch (error) {
-    log("Error setting up accessibility:", error);
-  }
-}
+    // hook timeline updates to refresh accessibility state
+    // we keep this lightweight — timeline.closestIndex() already exists
+    const onTimelineUpdate = () => {
+      if (state.isDestroyed) return;
+      const idx =
+        typeof timeline.closestIndex === "function"
+          ? timeline.closestIndex(false)
+          : 0;
+      updateActive(idx, true, false);
+    };
 
-/**
- * Sets up error recovery mechanisms
- */
-function setupErrorRecovery(timeline, config, log) {
-  // Global error handler
-  const originalOnError = window.onerror;
-
-  window.onerror = function (message, source, lineno, colno, error) {
-    if (message.includes("horizontalLoop") || message.includes("gsap")) {
-      log("Carousel error detected:", {
-        message,
-        source,
-        lineno,
-        colno,
-        error,
-      });
-
-      // Attempt recovery
-      try {
-        if (timeline && !timeline.paused()) {
-          timeline.pause();
+    // Use GSAP's eventCallback if available; otherwise, poll via ticker
+    if (typeof timeline.eventCallback === "function") {
+      timeline.eventCallback("onUpdate", onTimelineUpdate);
+      // store marker so cleanup can remove it (we'll null it in state.accessibility)
+    } else if (typeof gsap !== "undefined" && gsap.ticker) {
+      // fallback: subscribe to ticker and cheaply check progress changes
+      let last = -1;
+      const tick = () => {
+        if (state.isDestroyed) {
+          gsap.ticker.remove(tick);
+          return;
         }
-      } catch (e) {
-        log("Error recovery failed:", e);
-      }
+        const idx =
+          typeof timeline.closestIndex === "function"
+            ? timeline.closestIndex(false)
+            : 0;
+        if (idx !== last) {
+          last = idx;
+          updateActive(idx, true, false);
+        }
+      };
+      gsap.ticker.add(tick);
+      state._accessibilityTicker = tick;
     }
 
-    if (originalOnError) {
-      return originalOnError.call(this, message, source, lineno, colno, error);
-    }
-  };
+    // persist references for cleanup
+    state.accessibility = {
+      updateActive,
+      handleKeydown,
+      onTimelineUpdate,
+      liveRegion: state.liveRegion,
+    };
+  } catch (error) {
+    (log?.error || console.error).call(
+      console,
+      "Error setting up accessibility:",
+      error
+    );
+  }
 }
 
 /**
