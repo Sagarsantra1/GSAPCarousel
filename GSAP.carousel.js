@@ -21,7 +21,6 @@
  * @param {boolean} [config.updateOnlyOnSettle=false] - Fire onChange only when interaction settles.
  * @param {Function|null} [config.onInitialized=null] - Callback fired after initialization.
  * @param {boolean} [config.debug=false] - Enable debug logging.
- * @param {boolean} [config.errorRecovery=true] - Enable error recovery features.
  * @param {boolean} [config.accessibilityEnabled=true] - Enable accessibility features.
  *
  * @returns {GSAPTimeline|null} Configured GSAP timeline with controls and a cleanup method.
@@ -125,7 +124,6 @@ function validateAndMergeConfig(userConfig) {
     updateOnlyOnSettle: false,
     onInitialized: null,
     debug: false,
-    errorRecovery: true,
     accessibilityEnabled: true,
   };
 
@@ -204,22 +202,6 @@ function makeEventManager() {
         } catch (e) {}
       }
       listeners.length = 0;
-    },
-    // optional: remove a single listener
-    off(target, type, handler) {
-      for (let i = listeners.length - 1; i >= 0; i--) {
-        const rec = listeners[i];
-        if (
-          rec.target === target &&
-          rec.type === type &&
-          rec.handler === handler
-        ) {
-          try {
-            rec.target.removeEventListener(rec.type, rec.handler, rec.options);
-          } catch (e) {}
-          listeners.splice(i, 1);
-        }
-      }
     },
   };
 }
@@ -486,6 +468,7 @@ function populateTimeline(tl, container, items, config, log) {
     tl._populateWidths = populateWidths;
     tl._populateOffsets = populateOffsets;
     tl._container = container;
+    tl._config = config;
 
     return true;
   } catch (error) {
@@ -862,6 +845,21 @@ function setupAutoplay(timeline, config, state, log) {
 
   // nothing to do
   if (config.paused || config.autoplayTimeout <= 0) return;
+
+  timeline.pauseAutoplay = () => {
+    if (state.isDestroyed) return;
+    config.paused = true;
+    timeline.pause();
+    killAutoplay(state);
+  };
+  timeline.playAutoplay = () => {
+    if (state.isDestroyed) return;
+    config.paused = false;
+    if (!timeline.paused()) {
+      config.reversed ? timeline.reverse() : timeline.play();
+    }
+    scheduleAutoplay(timeline, config, state, log);
+  };
 
   // ensure any previous call is killed
   killAutoplay(state);

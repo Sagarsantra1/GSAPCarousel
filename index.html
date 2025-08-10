@@ -234,7 +234,7 @@
         draggable: true,
         // repeat: -1,
         paused: false, // uncomment to pause autoplay
-        autoplayTimeout: 2, //don't work on tl.pasue() of tl.play()
+        autoplayTimeout: 2, //use .playAutoplay() and .pauseAutoplay() on the timeline methods to control this.
         // reversed: true,
         prevNav: [".prev", { duration: 0.4, ease: "power4.out" }],
         nextNav: [".next", { duration: 0.4, ease: "power4.out" }],
@@ -242,12 +242,6 @@
         // snap: 1,
         updateOnlyOnSettle: true,
         center: true,
-        onInitialized: (e) => {
-          // console.log("Carousel initialized", e);
-        },
-        onChange: (e) => {
-          // console.log("Carousel changed", e);
-        },
         responsive: {
           0: { items: 1 },
           768: { items: 2 },
@@ -255,10 +249,18 @@
         },
         // Production-specific options
         // debug: true,
-        errorRecovery: true,
         accessibilityEnabled: true,
       });
-      // GSDevTools.create();
+
+      const wrapper = document.querySelector(".wrapper");
+
+      wrapper.addEventListener("mouseenter", () => {
+        investorsCarousel_tl.data[0].pauseAutoplay();
+      });
+
+      wrapper.addEventListener("mouseleave", () => {
+        investorsCarousel_tl.data[0].playAutoplay();
+      });
 
       const boxes = gsap.utils.toArray(".box");
 
