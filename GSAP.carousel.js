@@ -69,7 +69,6 @@
  *   Configured GSAP timeline instance with control methods and a `cleanup()` method.
  */
 
-// Debug logging
 function horizontalLoop(itemsContainer, config = {}) {
   // Environment checks
   if (typeof window === "undefined") {
@@ -286,33 +285,31 @@ function initializeCarousel(container, items, config, state, log) {
     setupResponsiveHandling(container, items, config, state, log);
   }
 
-  // Create GSAP context for proper cleanup
-  return gsap.context(() => {
-    const timeline = createTimeline(container, items, config, state, log);
+  const timeline = createTimeline(container, items, config, state, log);
 
-    if (!timeline) return null;
+  if (!timeline) return null;
 
-    // Setup additional features
-    setupNavigation(timeline, container, config, state, log);
-    createDotsElements(timeline, items, container, config, state, log);
-    setupAutoplay(timeline, config, state, log);
-    setupAccessibility(timeline, container, items, config, state, log);
+  // Setup additional features
+  setupNavigation(timeline, container, config, state, log);
+  createDotsElements(timeline, items, container, config, state, log);
+  setupAutoplay(timeline, config, state, log);
+  setupAccessibility(timeline, container, items, config, state, log);
 
-    state.timeline = timeline;
-    // Initial active dot positioning
-    updateDots(state.dots, 0);
+  state.timeline = timeline;
+  // Initial active dot positioning
+  updateDots(state.dots, 0);
 
-    // Call initialization callback
-    if (config.onInitialized) {
-      try {
-        config.onInitialized(createPayload(0, timeline, items, config));
-      } catch (error) {
-        log("Error in onInitialized callback:", error);
-      }
+  // Call initialization callback
+  if (config.onInitialized) {
+    try {
+      config.onInitialized(createPayload(0, timeline, items, config));
+    } catch (error) {
+      log("Error in onInitialized callback:", error);
     }
+  }
 
-    return timeline;
-  });
+  log("Carousel initialized successfully");
+  return timeline;
 }
 
 /**

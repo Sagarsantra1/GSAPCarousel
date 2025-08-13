@@ -248,25 +248,27 @@
           992: { items: 3 },
         },
         // Production-specific options
-        debug: true,
+        // debug: true,
         accessibilityEnabled: true,
       });
+
+      console.log(investorsCarousel_tl);
 
       const wrapper = document.querySelector(".wrapper");
 
       wrapper.addEventListener("mouseenter", () => {
-        investorsCarousel_tl.data[0].pauseAutoplay();
+        investorsCarousel_tl.pauseAutoplay();
       });
 
       wrapper.addEventListener("mouseleave", () => {
-        investorsCarousel_tl.data[0].playAutoplay();
+        investorsCarousel_tl.playAutoplay();
       });
 
       const boxes = gsap.utils.toArray(".box");
 
       boxes.forEach((box, i) =>
         box.addEventListener("click", () =>
-          investorsCarousel_tl.data[0].toIndex(i, {
+          investorsCarousel_tl.toIndex(i, {
             duration: 0.8,
             ease: "power1.inOut",
           })
