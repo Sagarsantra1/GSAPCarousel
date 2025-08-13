@@ -232,9 +232,9 @@
         speed: 5,
         gap: "20px",
         draggable: true,
-        // repeat: -1,
+        repeat: -1,
         // paused: false, // uncomment to pause autoplay
-        // autoplayDelay: 2, //use .playAutoplay() and .pauseAutoplay() on the timeline methods to control this.
+        // autoplayDelay: 2,
         // reversed: true,
         prevNav: [".prev", { duration: 0.4, ease: "power4.out" }],
         nextNav: [".next", { duration: 0.4, ease: "power4.out" }],
@@ -252,15 +252,15 @@
         accessibilityEnabled: true,
       });
 
-      // const wrapper = document.querySelector(".wrapper");
+      const wrapper = document.querySelector(".wrapper");
 
-      // wrapper.addEventListener("mouseenter", () => {
-      //   investorsCarousel_tl.data[0].pauseAutoplay();
-      // });
+      wrapper.addEventListener("mouseenter", () => {
+        investorsCarousel_tl.data[0].pauseAutoplay();
+      });
 
-      // wrapper.addEventListener("mouseleave", () => {
-      //   investorsCarousel_tl.data[0].playAutoplay();
-      // });
+      wrapper.addEventListener("mouseleave", () => {
+        investorsCarousel_tl.data[0].playAutoplay();
+      });
 
       const boxes = gsap.utils.toArray(".box");
 

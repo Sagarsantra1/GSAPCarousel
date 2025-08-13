@@ -110,6 +110,7 @@ function horizontalLoop(itemsContainer, config = {}) {
     autoplayDelay: null,
     eventListeners: new Map(),
     isProgrammaticNavigation: false,
+    eventManager: makeEventManager(),
   };
 
   try {
@@ -662,6 +663,21 @@ function addNavigationMethods(tl, items, config, state, log) {
     }
   };
 
+  tl.pauseAutoplay = () => {
+    if (state.isDestroyed) return;
+    tl.pause();
+    killAutoplay(state);
+  };
+
+  tl.playAutoplay = () => {
+    if (state.isDestroyed) return;
+    if (!config.autoplayDelay > 0) {
+      config.reversed ? tl.reverse() : tl.play();
+    } else {
+      scheduleAutoplay(tl, config, state, log);
+    }
+  };
+
   tl.current = () => (indexIsDirty ? tl.closestIndex(true) : curIndex);
   tl.next = (vars) => tl.toIndex(tl.current() + 1, vars);
   tl.previous = (vars) => tl.toIndex(tl.current() - 1, vars);
@@ -669,7 +685,6 @@ function addNavigationMethods(tl, items, config, state, log) {
 
   // Add resize handler
   const onResize = () => refresh(true);
-  if (!state.eventManager) state.eventManager = makeEventManager();
   state.eventManager.on(window, "resize", onResize);
 }
 
@@ -768,8 +783,6 @@ function setupResponsiveHandling(container, items, config, state, log) {
     state.resizeObserver = new ResizeObserver(updateResponsiveStyles);
     state.resizeObserver.observe(container);
   } else {
-    if (!state.eventManager) state.eventManager = makeEventManager();
-
     state.eventManager.on(window, "resize", updateResponsiveStyles, {
       passive: true,
     });
@@ -885,26 +898,8 @@ function scheduleAutoplay(timeline, config, state, log) {
 
 /* improved setupAutoplay */
 function setupAutoplay(timeline, config, state, log) {
-  // ensure an event manager exists on state
-  if (!state.eventManager) state.eventManager = makeEventManager();
-
   // nothing to do
   if (config.paused || config.autoplayDelay <= 0) return;
-
-  timeline.pauseAutoplay = () => {
-    if (state.isDestroyed) return;
-    config.paused = true;
-    timeline.pause();
-    killAutoplay(state);
-  };
-  timeline.playAutoplay = () => {
-    if (state.isDestroyed) return;
-    config.paused = false;
-    if (!timeline.paused()) {
-      config.reversed ? timeline.reverse() : timeline.play();
-    }
-    scheduleAutoplay(timeline, config, state, log);
-  };
 
   // ensure any previous call is killed
   killAutoplay(state);
@@ -946,11 +941,8 @@ function setupAutoplay(timeline, config, state, log) {
   if (!config.paused) scheduleAutoplay(timeline, config, state, log);
 }
 
-// concise navigation: no auto-creation of buttons, uses resolveElement & makeEventManager
-
 function setupNavigation(timeline, container, config, state, log) {
   if (!(config.prevNav || config.nextNav)) return;
-  if (!state.eventManager) state.eventManager = makeEventManager();
   try {
     state.navigation = createNavigationElements(
       timeline,
@@ -1038,7 +1030,6 @@ function createNavigationElements(timeline, container, config, state, log) {
 // createDotsElements: uses delegation, batches DOM writes, links dots <-> slides for accessibility
 function createDotsElements(timeline, items, container, config, state, log) {
   // ensure event manager
-  if (!state.eventManager) state.eventManager = makeEventManager();
   const em = state.eventManager;
 
   // support tuple [selectorOrElement, opts] or string/element
@@ -1139,8 +1130,6 @@ function setupAccessibility(
   log
 ) {
   if (!config.accessibilityEnabled) return;
-  if (!state.eventManager) state.eventManager = makeEventManager();
-
   const em = state.eventManager || {
     on: (el, ev, fn) => el.addEventListener(ev, fn),
     off: (el, ev, fn) => el.removeEventListener(ev, fn),
