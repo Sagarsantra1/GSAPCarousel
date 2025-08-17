@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GSAPCarousel — API Reference</title>
+    <meta
+      name="description"
+      content="API documentation for the GSAP Horizontal Loop Carousel component."
+    />
+    <link rel="stylesheet" href="css/docs.css" />
+  </head>
+  <body>
+    <nav class="site-nav" aria-label="Site navigation">
+      <div class="nav-inner">
+        <div class="links">
+          <a href="index.html">Home</a>
+          <a href="api.html">API</a>
+          <a href="examples.html">Examples</a>
+          <a href="https://github.com/" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <header style="padding-top: 0; margin-top: 0">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div>
+            <h1>GSAP Horizontal Loop — API Reference</h1>
+            <p class="lead">
+              Production-ready API docs for the horizontal loop carousel
+              component (source: README).
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div class="grid">
+        <main>
+          <section class="panel">
+            <h2 class="section-title">Overview</h2>
+            <p class="muted">
+              A seamless, responsive, horizontally looping carousel built on
+              GSAP. Features touch/mouse dragging, autoplay, navigation,
+              pagination, accessibility, and a compact programmatic API.
+            </p>
+
+            <div style="margin-top: 14px">
+              <h3 class="section-title">Installation</h3>
+              <p class="muted">
+                Install GSAP via npm or include it from a CDN. Draggable and
+                Inertia plugins are optional for advanced dragging/momentum.
+              </p>
+              <pre><code>// npm
+npm install gsap
+
+// or include GSAP via CDN (example)
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js"&gt;&lt;/script&gt;
+</code></pre>
+            </div>
+
+            <div style="margin-top: 12px">
+              <h3 class="section-title">Quick Start</h3>
+              <pre><code>&lt;!-- markup --&gt;
+&lt;div class="carousel-container"&gt;
+  &lt;div class="carousel-item"&gt;Slide 1&lt;/div&gt;
+  &lt;!-- more slides --&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+const carousel = horizontalLoop('.carousel-container', {
+  speed: 1,
+  gap: '20px',
+  draggable: true,
+  autoplayDelay: 3,
+});
+&lt;/script&gt;
+</code></pre>
+            </div>
+
+            <div style="margin-top: 12px">
+              <h3 class="section-title">Configuration Options</h3>
+              <p class="muted">
+                The component accepts a single options object. The table below
+                lists the most-used options.
+              </p>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>Option</th>
+                    <th>Description (default)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>responsive</th>
+                    <td>Object|null — breakpoint mapping (null)</td>
+                  </tr>
+                  <tr>
+                    <th>speed</th>
+                    <td>number — speed multiplier (1)</td>
+                  </tr>
+                  <tr>
+                    <th>gap</th>
+                    <td>string — CSS gap between items ("0px")</td>
+                  </tr>
+                  <tr>
+                    <th>draggable</th>
+                    <td>boolean — enable dragging (false)</td>
+                  </tr>
+                  <tr>
+                    <th>repeat</th>
+                    <td>
+                      number — number of loop repeats (0, -1 for infinite)
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>paused</th>
+                    <td>boolean — start paused (true)</td>
+                  </tr>
+                  <tr>
+                    <th>autoplayDelay</th>
+                    <td>number — seconds between advances (0 disables)</td>
+                  </tr>
+                  <tr>
+                    <th>reversed</th>
+                    <td>boolean — reverse direction (false)</td>
+                  </tr>
+                  <tr>
+                    <th>prevNav / nextNav</th>
+                    <td>Element|string|Array — navigation control selectors</td>
+                  </tr>
+                  <tr>
+                    <th>dots</th>
+                    <td>Element|string|Array — pagination container</td>
+                  </tr>
+                  <tr>
+                    <th>snap</th>
+                    <td>number|false — snap increment (1)</td>
+                  </tr>
+                  <tr>
+                    <th>onChange</th>
+                    <td>Function|null — called when visible slide changes</td>
+                  </tr>
+                  <tr>
+                    <th>onInitialized</th>
+                    <td>Function|null — called after initialization</td>
+                  </tr>
+                  <tr>
+                    <th>ariaLabel</th>
+                    <td>string — ARIA label ("Carousel")</td>
+                  </tr>
+                  <tr>
+                    <th>accessibilityEnabled</th>
+                    <td>boolean — enable accessibility (true)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="margin-top: 12px">
+              <h3 class="section-title">Core Methods</h3>
+              <div class="example-box">
+                <p class="muted">
+                  The API exposes convenient control methods for programmatic
+                  usage.
+                </p>
+                <ul class="muted" style="margin: 8px 0 0 18px">
+                  <li>
+                    <code>toIndex(index, options?)</code> — Navigate to a slide.
+                  </li>
+                  <li>
+                    <code>next(options?) / previous(options?)</code> — Step
+                    forward/back.
+                  </li>
+                  <li><code>current()</code> — Returns current index.</li>
+                  <li>
+                    <code>closestIndex(setCurrent?)</code> — Closest slide
+                    index.
+                  </li>
+                  <li>
+                    <code>playAutoplay() / pauseAutoplay()</code> — Autoplay
+                    control.
+                  </li>
+                  <li><code>refresh(deep?)</code> — Recalculate layout.</li>
+                  <li>
+                    <code>cleanup()</code> — Destroy instance and listeners.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div style="margin-top: 12px">
+              <h3 class="section-title">Callback Data</h3>
+              <pre><code>{
+  currentItem: HTMLElement,
+  currentIndex: number,
+  totalItems: number,
+  progress: number,           // 0..1
+  slideWidth: number,
+  timeline: GSAPTimeline,
+  config: Object
+}
+</code></pre>
+            </div>
+          </section>
+
+          <section class="panel" style="margin-top: 14px">
+            <h3 class="section-title">Accessibility & Keyboard</h3>
+            <p class="muted">
+              ARIA attributes, keyboard controls, screen reader announcements
+              and focus management are implemented. Standard keys:
+            </p>
+            <ul class="muted" style="margin: 8px 0 0 18px">
+              <li>Arrow ← / → : Navigate slides</li>
+              <li>Home / End : First / Last slides</li>
+              <li>Enter / Space : Activate controls</li>
+            </ul>
+          </section>
+
+          <section class="panel" style="margin-top: 14px">
+            <h3 class="section-title">Examples & Troubleshooting</h3>
+            <p class="muted">
+              Check the examples directory for basic and advanced setups. Common
+              issues (slides not visible, dragging not working, autoplay not
+              starting) and remedies are documented in the README.
+            </p>
+          </section>
+
+          <footer>
+            Source: README.md (used to build this page). See the repository for
+            full examples and tests.
+          </footer>
+        </main>
+
+        <aside class="right-col">
+          <div class="panel">
+            <h3 class="section-title">Quick Reference</h3>
+            <div class="meta">
+              <div class="meta-item">
+                <span class="muted">Default speed</span><strong>1</strong>
+              </div>
+              <div class="meta-item">
+                <span class="muted">Default gap</span><strong>0px</strong>
+              </div>
+              <div class="meta-item">
+                <span class="muted">Autoplay default</span
+                ><strong>disabled</strong>
+              </div>
+              <div class="meta-item">
+                <span class="muted">Accessibility</span><strong>enabled</strong>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn" onclick="copyExample()">
+                Copy Init Snippet
+              </button>
+              <button class="btn secondary" onclick="openExamples()">
+                Open examples/index.html
+              </button>
+            </div>
+
+            <div
+              class="example-box"
+              id="snippet"
+              style="display: none; margin-top: 12px"
+            >
+              <pre><code>const carousel = horizontalLoop('.carousel-container', { gap: '20px', draggable: true });</code></pre>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 14px">
+            <h3 class="section-title">Compatibility</h3>
+            <p class="muted">
+              Modern evergreen browsers. For drag support include Draggable
+              plugin; for momentum include InertiaPlugin (GSAP membership
+              required).
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script>
+      function copyExample() {
+        const txt =
+          "const carousel = horizontalLoop('.carousel-container', { gap: '20px', draggable: true });";
+        navigator.clipboard
+          ?.writeText(txt)
+          .then(() => {
+            alert("Snippet copied to clipboard");
+          })
+          .catch(() => alert("Copy failed"));
+        document.getElementById("snippet").style.display = "block";
+      }
+      function openExamples() {
+        alert(
+          "Open the repository examples/basic/index.html in your browser or serve the repo."
+        );
+      }
+    </script>
+  </body>
+</html>
