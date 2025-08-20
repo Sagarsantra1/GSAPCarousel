@@ -1,4 +1,4 @@
-# GSAP Horizontal Loop Carousel
+# GSAP Carousel
 
 A production-ready, seamless horizontal carousel component built with GSAP (GreenSock Animation Platform). This carousel provides smooth infinite scrolling, responsive design, accessibility features, and extensive customization options.
 
@@ -17,29 +17,39 @@ A production-ready, seamless horizontal carousel component built with GSAP (Gree
 
 ## Installation
 
+## Installation Guide
+
+Download the minified JavaScript file from [GSAP Carousel Downloads](https://sagarsantra1.github.io/GSAPCarousel/). Once downloaded, include the file in your project by adding the following script tag to your HTML:
+
+```html
+<script src="path/to/gsap-carousel.min.js"></script>
+```
+
+Replace "path/to" with the actual path where you saved the file.
+
 ### Prerequisites
 
 This carousel requires GSAP (GreenSock Animation Platform):
 
 ```html
 <!-- Required -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 
 <!-- Optional: For drag functionality -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/InertiaPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Draggable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/InertiaPlugin.min.js"></script>
 ```
 
 ### Include the Script
 
 ```html
-<script src="path/to/horizontal-loop.js"></script>
+<script src="path/to/gsap-carousel.min.js"></script>
 ```
 
 Or import as a module:
 
 ```javascript
-import horizontalLoop from "./horizontal-loop.js";
+import horizontalLoop from "./gsap-carousel.min.js";
 ```
 
 ## Basic Usage

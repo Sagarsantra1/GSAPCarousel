@@ -1,119 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>GSAPCarousel — Docs</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GSAP Carousel - Production-Ready Infinite Scrolling Carousel</title>
     <meta
       name="description"
-      content="Documentation and quickstart for the GSAP Horizontal Loop Carousel."
+      content="A production-ready, seamless horizontal carousel component built with GSAP. Features smooth infinite scrolling, responsive design, and accessibility support."
     />
-    <link rel="stylesheet" href="css/docs.css" />
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+
+    <link rel="stylesheet" href="/docs/css/styles.css" />
   </head>
   <body>
-    <nav class="site-nav" aria-label="Site navigation">
-      <div class="nav-inner">
-        <div class="links">
-          <a href="index.html">Home</a>
-          <a href="api.html">API</a>
-          <a href="examples.html">Examples</a>
-          <a
-            href="https://github.com/Sagarsantra1/GSAPCarousel"
-            target="_blank"
-            rel="noopener"
-            >GitHub</a
-          >
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <h2>GSAP Carousel</h2>
+        </div>
+        <div class="nav-menu">
+          <a href="#home" class="nav-link active">Home</a>
+          <a href="demos.html" class="nav-link">Demos</a>
+          <a href="docs.html" class="nav-link">Docs</a>
+          <button class="btn btn-primary" onclick="downloadCarousel()">
+            <span>📥</span> Download
+          </button>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
       </div>
     </nav>
 
-    <div class="container">
-      <header>
-        <div>
-          <h1>GSAP Carousel</h1>
-          <p class="lead">
-            A smooth, performant carousel library built with GSAP. Minimal,
-            accessible, and easy to integrate.
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Production-Ready
+            <span class="highlight">GSAP Carousel</span>
+          </h1>
+          <p class="hero-description">
+            A seamless horizontal carousel component with smooth infinite
+            scrolling, responsive design, accessibility features, and extensive
+            customization options.
           </p>
+          <div class="hero-buttons">
+            <button
+              class="btn btn-primary btn-large"
+              onclick="downloadCarousel()"
+            >
+              <span>📥</span> Download Now
+            </button>
+            <a
+              href="https://github.com/sagarsantra1/GSAPCarousel"
+              class="btn btn-secondary btn-large"
+              target="_blank"
+              rel="noopener"
+            >
+              <span>⭐</span> View on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="cta-row">
-            <a class="btn primary" href="../dist/gsap-carousel.min.js" download
-              >Download (minified)</a
+    <!-- Demo Section -->
+    <section class="demo-section">
+      <div class="container">
+        <h2 class="section-title">See It In Action</h2>
+        <p class="section-description">
+          Experience the smooth, seamless scrolling with touch support and
+          responsive behavior.
+        </p>
+
+        <div class="demo-container">
+          <div class="carousel-wrapper">
+            <button
+              class="carousel-nav prev"
+              id="demo-prev"
+              aria-label="Previous slide"
             >
-            <a class="btn" href="../dist/gsap-carousel.js" download
-              >Download (dev)</a
+              ←
+            </button>
+
+            <div class="carousel-container" id="demo-carousel">
+              <div class="carousel-slide">
+                <div class="slide-content">
+                  <div class="slide-icon">🚀</div>
+                  <h3>Lightning Fast</h3>
+                  <p>Optimized animations with GSAP's performance engine</p>
+                </div>
+              </div>
+              <div class="carousel-slide">
+                <div class="slide-content">
+                  <div class="slide-icon">📱</div>
+                  <h3>Fully Responsive</h3>
+                  <p>Adapts beautifully to any screen size and device</p>
+                </div>
+              </div>
+              <div class="carousel-slide">
+                <div class="slide-content">
+                  <div class="slide-icon">♿</div>
+                  <h3>Accessible</h3>
+                  <p>Full ARIA support and keyboard navigation</p>
+                </div>
+              </div>
+              <div class="carousel-slide">
+                <div class="slide-content">
+                  <div class="slide-icon">⚙️</div>
+                  <h3>Customizable</h3>
+                  <p>Extensive configuration options for any use case</p>
+                </div>
+              </div>
+              <div class="carousel-slide">
+                <div class="slide-content">
+                  <div class="slide-icon">🔄</div>
+                  <h3>Infinite Loop</h3>
+                  <p>Seamless continuous scrolling without visible resets</p>
+                </div>
+              </div>
+              <div class="carousel-slide">
+                <div class="slide-content">
+                  <div class="slide-icon">👆</div>
+                  <h3>Touch Support</h3>
+                  <p>Natural swipe gestures with momentum scrolling</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="carousel-nav next"
+              id="demo-next"
+              aria-label="Next slide"
             >
-            <a class="btn" href="api.html">Read the API</a>
-            <a class="btn" href="examples.html">View examples</a>
+              →
+            </button>
           </div>
 
-          <p class="note">
-            Prefer a CDN? Use the minified file hosted on GitHub Pages in your
-            project (replace username if hosted elsewhere):
-          </p>
-          <pre><code>&lt;script src="https://Sagarsantra1.github.io/GSAPCarousel/dist/gsap-carousel.min.js"&gt;&lt;/script&gt;</code></pre>
+          <div class="carousel-dots" id="demo-dots"></div>
         </div>
-      </header>
+      </div>
+    </section>
 
-      <section>
-        <h2>Installation</h2>
-        <h3>Files</h3>
-        <ul>
-          <li>
-            <a href="../dist/gsap-carousel.js" download
-              >dist/gsap-carousel.js</a
-            >
-            — development (readable) build
-          </li>
-          <li>
-            <a href="../dist/gsap-carousel.min.js" download
-              >dist/gsap-carousel.min.js</a
-            >
-            — production minified build
-          </li>
-        </ul>
-
-        <h3>Quick start</h3>
-        <p class="note">
-          Include GSAP (and plugins if needed) before the carousel script. Then
-          initialize with a selector and options.
+    <!-- Features Section -->
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">Powerful Features</h2>
+        <p class="section-description">
+          Everything you need for a production-ready carousel solution.
         </p>
-        <pre><code>&lt;!-- include GSAP (cdn) --&gt;
-&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js"&gt;&lt;/script&gt;
-&lt;!-- then the carousel --&gt;
-&lt;script src="/dist/gsap-carousel.min.js"&gt;&lt;/script&gt;
 
-&lt;!-- markup --&gt;
-&lt;div class="carousel-container"&gt;
-  &lt;div class="carousel-item"&gt;Item 1&lt;/div&gt;
-  &lt;!-- more items --&gt;
-&lt;/div&gt;
+        <div class="features-grid">
+          <div class="features-marquee-1">
+            <div class="feature-card">
+              <div class="feature-icon">⚡</div>
+              <h3>High Performance</h3>
+              <p>Optimized for speed with GSAP's powerful animation engine</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔄</div>
+              <h3>Seamless Infinite Loop</h3>
+              <p>Smooth continuous scrolling without visible resets or jumps</p>
+            </div>
 
-&lt;script&gt;
-const carousel = horizontalLoop('.carousel-container', {
-  speed: 1,
-  gap: '20px',
-  draggable: true
-});
-&lt;/script&gt;
-</code></pre>
+            <div class="feature-card">
+              <div class="feature-icon">📱</div>
+              <h3>Responsive Design</h3>
+              <p>Configurable breakpoints with different items per viewport</p>
+            </div>
 
-        <h3>Notes</h3>
-        <ul>
-          <li>
-            For drag momentum include the Draggable + InertiaPlugin (GSAP Club
-            required for Inertia).
-          </li>
-          <li>
-            Serve the examples folder with a local server (e.g. `npx http-server
-            examples`) to avoid CORS issues when loading assets.
-          </li>
-        </ul>
-      </section>
+            <div class="feature-card">
+              <div class="feature-icon">👆</div>
+              <h3>Touch & Mouse Dragging</h3>
+              <p>Optional drag-to-scroll with momentum and inertia</p>
+            </div>
 
-      <footer class="note">
-        License: MIT — See LICENSE file in the repository.
-      </footer>
-    </div>
+            <div class="feature-card">
+              <div class="feature-icon">⏯️</div>
+              <h3>Autoplay Control</h3>
+              <p>Configurable automatic advancement with pause/resume</p>
+            </div>
+          </div>
+          <div class="features-marquee-2">
+            <div class="feature-card">
+              <div class="feature-icon">🎯</div>
+              <h3>Navigation Controls</h3>
+              <p>Previous/next buttons with full keyboard support</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🔘</div>
+              <h3>Pagination Dots</h3>
+              <p>Visual indicators with click-to-navigate functionality</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">♿</div>
+              <h3>Accessibility Ready</h3>
+              <p>Full ARIA support and screen reader compatibility</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🎨</div>
+              <h3>Center Mode</h3>
+              <p>Option to center the active slide in the viewport</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">⚡</div>
+              <h3>Performance Optimized</h3>
+              <p>Debounced updates and efficient DOM manipulation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="quick-start">
+      <div class="container">
+        <h2 class="section-title">Quick Start</h2>
+        <div class="code-example">
+          <div class="code-header">
+            <span>HTML</span>
+            <button class="copy-btn" onclick="copyCode('html-code')">
+              Copy
+            </button>
+          </div>
+          <pre><code id="html-code">&lt;div id="carousel-container"&gt;
+  &lt;div class="slide"&gt;Slide 1&lt;/div&gt;
+  &lt;div class="slide"&gt;Slide 2&lt;/div&gt;
+  &lt;div class="slide"&gt;Slide 3&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+
+        <div class="code-example">
+          <div class="code-header">
+            <span>JavaScript</span>
+            <button class="copy-btn" onclick="copyCode('js-code')">Copy</button>
+          </div>
+          <pre><code id="js-code">const carousel = horizontalLoop("#carousel-container", {
+  responsive: {
+    0: { items: 1 },
+    768: { items: 2 },
+    1024: { items: 3 }
+  },
+  speed: 1.2,
+  gap: "20px",
+  draggable: true,
+  autoplayDelay: 3
+});</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Ready to Get Started?</h2>
+          <p>
+            Download the production-ready carousel and start building amazing
+            experiences.
+          </p>
+          <div class="cta-buttons">
+            <button
+              class="btn btn-primary btn-large"
+              onclick="downloadCarousel()"
+            >
+              <span>📥</span> Download Now
+            </button>
+            <a href="docs.html" class="btn btn-secondary btn-large">
+              <span>📚</span> View Documentation
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>GSAP Carousel</h3>
+            <p>Production-ready carousel component built with GSAP.</p>
+          </div>
+          <div class="footer-section">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="docs.html">Documentation</a></li>
+              <li><a href="demos.html">Examples</a></li>
+              <li>
+                <a
+                  href="https://github.com/sagarsantra1/GSAPCarousel"
+                  target="_blank"
+                  >GitHub</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Support</h4>
+            <ul>
+              <li>
+                <a
+                  href="https://github.com/sagarsantra1/GSAPCarousel/issues"
+                  target="_blank"
+                  >Report Issues</a
+                >
+              </li>
+              <li>
+                <a href="https://gsap.com/docs/" target="_blank">GSAP Docs</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 GSAP Carousel. Licensed under MIT.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="./js/script.js"></script>
+    <!-- Required -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+
+    <!-- Optional: For drag functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Draggable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/InertiaPlugin.min.js"></script>
+
+    <!-- Carousel Script -->
+    <script src="../dist/gsap-carousel.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Demo carousel initialization
+        const demoCarousel = horizontalLoop("#demo-carousel", {
+          speed: 5,
+          gap: "20px",
+          draggable: true,
+          autoplayDelay: 4,
+          prevNav: ["#demo-prev", { duration: 0.1, ease: "power2.out" }],
+          nextNav: ["#demo-next", { duration: 0.1, ease: "power2.out" }],
+          dots: ["#demo-dots", { duration: 0.1, ease: "power2.out" }],
+          center: false,
+          updateOnlyOnSettle: true,
+        });
+
+        const featuresMarquee1 = horizontalLoop(".features-marquee-1", {
+          speed: 2,
+          gap: "20px",
+          paused: false,
+          repeat: -1,
+        });
+        const featuresMarquee2 = horizontalLoop(".features-marquee-2", {
+          speed: 2,
+          gap: "20px",
+          paused: false,
+          repeat: -1,
+          reversed: true,
+        });
+
+        const featuresGrid = document.querySelector(".features-grid");
+        featuresGrid.addEventListener("mouseenter", () => {
+          featuresMarquee1.pause();
+          featuresMarquee2.pause();
+        });
+        featuresGrid.addEventListener("mouseleave", () => {
+          featuresMarquee1.resume();
+          featuresMarquee2.resume();
+        });
+      });
+    </script>
   </body>
 </html>

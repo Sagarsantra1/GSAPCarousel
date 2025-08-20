@@ -294,6 +294,8 @@ function initializeCarousel(container, items, config, state, log) {
   createDotsElements(timeline, items, container, config, state, log);
   setupAutoplay(timeline, config, state, log);
   setupAccessibility(timeline, container, items, config, state, log);
+  // Setup unified update handling (change detection + accessibility)
+  setupUnifiedUpdate(timeline, items, config, state, log);
 
   state.timeline = timeline;
   // Initial active dot positioning
@@ -339,9 +341,6 @@ function createTimeline(container, items, config, state, log) {
 
     // Add navigation methods with error handling
     addNavigationMethods(tl, items, config, state, log);
-
-    // Setup change detection with debouncing
-    setupChangeDetection(tl, items, config, state, lastIndex, log);
 
     // Setup draggable if requested and available
     if (config.draggable && typeof Draggable !== "undefined") {
@@ -708,45 +707,54 @@ function getClosest(values, value, wrap) {
 }
 
 /**
- * Sets up change detection with debouncing
+ * Sets up unified change detection and accessibility updates
  */
-function setupChangeDetection(tl, items, config, state, lastIndex, log) {
-  if (!config.onChange && !config.dots) return;
-
-  let changeTimeout;
-
+function setupUnifiedUpdate(tl, items, config, state, log) {
+  if (!config.onChange && !config.dots && !config.accessibilityEnabled) return;
   tl.eventCallback("onUpdate", function () {
     if (state.isDestroyed) return;
 
-    try {
-      // If updateOnlyOnSettle is true, skip updates during dragging/throwing
-      const shouldUpdate =
-        !config.updateOnlyOnSettle ||
-        (!tl.draggable?.isDragging &&
-          !tl.draggable?.isThrowing &&
-          !state.isProgrammaticNavigation);
+    // --- Change detection logic (for dots and onChange callback) ---
+    if (config.onChange || config.dots) {
+      try {
+        const shouldUpdate =
+          !config.updateOnlyOnSettle ||
+          (!tl.draggable?.isDragging &&
+            !tl.draggable?.isThrowing &&
+            !state.isProgrammaticNavigation);
 
-      if (shouldUpdate) {
-        const currentIndex = this.closestIndex();
-        if (lastIndex !== currentIndex) {
-          lastIndex = currentIndex;
+        if (shouldUpdate) {
+          const currentIndex = this.closestIndex();
 
-          // Debounce rapid changes
-          clearTimeout(changeTimeout);
-          changeTimeout = setTimeout(() => {
-            if (!state.isDestroyed) {
-              updateDots(state.dots, currentIndex);
-              if (config.onChange) {
+          if (!state.isDestroyed) {
+            updateDots(state.dots, currentIndex);
+            if (config.onChange) {
+              try {
                 config.onChange(
                   createPayload(currentIndex, this, items, config)
                 );
+              } catch (error) {
+                log("Error in onChange callback:", error);
               }
             }
-          }, 16); // ~60fps debouncing
+          }
         }
+      } catch (error) {
+        log("Error in change detection:", error);
       }
-    } catch (error) {
-      log("Error in change detection:", error);
+    }
+
+    // --- Accessibility update logic ---
+    if (config.accessibilityEnabled && state.accessibility?.updateActive) {
+      try {
+        const idx =
+          typeof this.closestIndex === "function"
+            ? this.closestIndex(false)
+            : 0;
+        state.accessibility.updateActive(idx);
+      } catch (error) {
+        log("Error in accessibility update:", error);
+      }
     }
   });
 }
@@ -1146,7 +1154,6 @@ function setupAccessibility(
     it.setAttribute("role", "group");
     it.setAttribute("aria-roledescription", "slide");
     it.setAttribute("aria-label", `${i + 1} of ${items.length}`);
-    it.setAttribute("aria-hidden", "true");
     it.tabIndex = -1;
   });
 
@@ -1155,7 +1162,6 @@ function setupAccessibility(
     if (index < 0 || index >= items.length) return;
     items.forEach((s, i) => {
       const active = i === index;
-      s.setAttribute("aria-hidden", active ? "false" : "true");
       s.tabIndex = active ? 0 : -1;
       s.classList.toggle("active", active);
     });
@@ -1200,7 +1206,6 @@ function setupAccessibility(
     updateActive(idx);
   };
   if (typeof timeline.eventCallback === "function") {
-    timeline.eventCallback("onUpdate", onTimelineUpdate);
     state._accessibilityCallback = { type: "eventCallback" };
   } else {
     // fallback: cheap polling (optional in minimal build)

@@ -224,7 +224,7 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
-    <script src="GSAP.carousel.js"></script>
+    <script src="../src/GSAP-carousel.js"></script>
 
     <script>
       // --- GSAP Carousel Setup for Investors Section ---
@@ -256,13 +256,13 @@
 
       const wrapper = document.querySelector(".wrapper");
 
-      wrapper.addEventListener("mouseenter", () => {
-        investorsCarousel_tl.pauseAutoplay();
-      });
+      // wrapper.addEventListener("mouseenter", () => {
+      //   investorsCarousel_tl.pauseAutoplay();
+      // });
 
-      wrapper.addEventListener("mouseleave", () => {
-        investorsCarousel_tl.playAutoplay();
-      });
+      // wrapper.addEventListener("mouseleave", () => {
+      //   investorsCarousel_tl.playAutoplay();
+      // });
 
       const boxes = gsap.utils.toArray(".box");
 

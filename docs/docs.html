@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GSAP Carousel Documentation - Complete Guide & API Reference</title>
+    <meta
+      name="description"
+      content="Complete documentation for GSAP Carousel including installation guide, API reference, configuration options, and examples."
+    />
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+    <style></style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <h2>GSAP Carousel</h2>
+        </div>
+        <div class="nav-menu">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="demos.html" class="nav-link">Demos</a>
+          <a href="docs.html" class="nav-link active">Docs</a>
+          <button class="btn btn-primary" onclick="downloadCarousel()">
+            <span>📥</span> Download
+          </button>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+    <div class="docs-container">
+      <!-- Sidebar -->
+      <nav class="docs-sidebar" id="docs-sidebar">
+        <button class="docs-toggle" onclick="toggleSidebar()">◧</button>
+        <div class="sidebar-section">
+          <div class="sidebar-title">Getting Started</div>
+          <a
+            href="#welcome"
+            class="sidebar-link active"
+            onclick="showSection('welcome', this)"
+            >Welcome</a
+          >
+          <a
+            href="#installation"
+            class="sidebar-link"
+            onclick="showSection('installation', this)"
+            >Installation</a
+          >
+          <a
+            href="#basic-usage"
+            class="sidebar-link"
+            onclick="showSection('basic-usage', this)"
+            >Basic Usage</a
+          >
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">Configuration</div>
+          <a
+            href="#options"
+            class="sidebar-link"
+            onclick="showSection('options', this)"
+            >Options</a
+          >
+          <a
+            href="#responsive"
+            class="sidebar-link"
+            onclick="showSection('responsive', this)"
+            >Responsive</a
+          >
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">API</div>
+          <a
+            href="#methods"
+            class="sidebar-link"
+            onclick="showSection('methods', this)"
+            >Methods</a
+          >
+          <a
+            href="#events"
+            class="sidebar-link"
+            onclick="showSection('events', this)"
+            >Events & Callbacks</a
+          >
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Support</div>
+          <a
+            href="#browser-support"
+            class="sidebar-link"
+            onclick="showSection('browser-support', this)"
+            >Browser Support</a
+          >
+          <a
+            href="#troubleshooting"
+            class="sidebar-link"
+            onclick="showSection('troubleshooting', this)"
+            >Troubleshooting</a
+          >
+          <a
+            href="#performance"
+            class="sidebar-link"
+            onclick="showSection('performance', this)"
+            >Performance Tips</a
+          >
+        </div>
+      </nav>
+      <!-- Content -->
+      <main class="docs-content">
+        <!-- Welcome Section -->
+        <section id="welcome" class="content-section active">
+          <div class="docs-header">
+            <h1 class="docs-title">GSAP Carousel Documentation</h1>
+            <p class="docs-subtitle">
+              A production-ready, seamless horizontal carousel component built
+              on GSAP's seamlessLoop helper function
+            </p>
+          </div>
+          <h2 class="content-title">Welcome</h2>
+          <p class="content-text">
+            GSAP Carousel is an enhanced, production-ready implementation of
+            GSAP's seamlessLoop helper function. It provides a high-performance,
+            feature-rich carousel component with smooth infinite scrolling,
+            responsive design, comprehensive accessibility features, and
+            extensive customization options. Built on top of the powerful GSAP
+            (GreenSock Animation Platform), it leverages hardware acceleration
+            and advanced animation techniques to deliver exceptional performance
+            across all modern browsers.
+          </p>
+
+          <div class="info-box">
+            <strong>Based on GSAP's seamlessLoop:</strong> This carousel extends
+            the official GSAP seamlessLoop helper function with additional
+            features like responsive breakpoints, accessibility enhancements,
+            advanced navigation controls, and comprehensive error handling for
+            production use.
+          </div>
+
+          <h3 class="content-subtitle">Key Features</h3>
+          <ul style="line-height: 1.8; margin-bottom: 2rem">
+            <li>
+              <strong>True Seamless Loop</strong> - Uses GSAP's advanced
+              xPercent positioning for pixel-perfect infinite scrolling without
+              visible resets or jumps
+            </li>
+            <li>
+              <strong>Responsive Grid System</strong> - Configurable breakpoints
+              with CSS custom properties for flexible items-per-row layouts
+            </li>
+            <li>
+              <strong>Advanced Touch & Mouse Dragging</strong> - Momentum-based
+              scrolling with InertiaPlugin integration and customizable snap
+              points
+            </li>
+            <li>
+              <strong>Smart Autoplay System</strong> - Pause on visibility
+              changes, user interaction, and focus events with configurable
+              delays
+            </li>
+            <li>
+              <strong>Comprehensive Navigation</strong> - Previous/next buttons,
+              pagination dots, and full keyboard navigation (arrow keys, Home,
+              End)
+            </li>
+            <li>
+              <strong>Center Mode Support</strong> - Active slide centering with
+              precise positioning calculations
+            </li>
+            <li>
+              <strong>WCAG 2.1 Compliance</strong> - Full ARIA implementation,
+              screen reader support, and keyboard accessibility
+            </li>
+            <li>
+              <strong>Memory Management</strong> - Automatic cleanup of event
+              listeners, observers, and animations with comprehensive destroy
+              methods
+            </li>
+            <li>
+              <strong>Developer Experience</strong> - Debug mode, comprehensive
+              error handling, and TypeScript-friendly API design
+            </li>
+          </ul>
+          <div class="success-box">
+            <strong>Production Tested:</strong> This carousel includes
+            battle-tested error recovery, comprehensive cleanup methods,
+            performance monitoring, and debugging tools specifically designed
+            for production environments with millions of users.
+          </div>
+        </section>
+
+        <!-- Installation Section -->
+        <section id="installation" class="content-section">
+          <h2 class="content-title">Installation</h2>
+
+          <h3 class="content-subtitle">Quick Start</h3>
+          <p class="content-text">
+            Download the carousel file and include it in your project. The
+            carousel automatically detects available GSAP plugins and adjusts
+            functionality accordingly.
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>HTML - Basic Setup</span>
+              <button class="copy-btn" onclick="copyCode('install-code')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="install-code">&lt;!-- Load GSAP first --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/dist/gsap.min.js"&gt;&lt;/script&gt;
+&lt;!-- Load carousel --&gt;
+&lt;script src="path/to/gsap-carousel.min.js"&gt;&lt;/script&gt;</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Required Dependencies</h3>
+          <p class="content-text">
+            GSAP 3.12+ is required. Additional plugins enhance functionality but
+            are not mandatory:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Complete Dependencies</span>
+              <button class="copy-btn" onclick="copyCode('dependencies-code')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="dependencies-code">&lt;!-- Required: GSAP Core (3.12.0 or newer) --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/dist/gsap.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- Optional: For drag functionality --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/dist/Draggable.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- Optional: For momentum scrolling (Club GreenSock) --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/dist/InertiaPlugin.min.js"&gt;&lt;/script&gt;</code></pre>
+          </div>
+
+          <div class="success-box">
+            <strong>All GSAP Plugins Now Free!</strong> GSAP has recently made
+            all plugins, including InertiaPlugin, completely free for both
+            personal and commercial use. This means you can enjoy the full
+            momentum-based dragging experience with smooth inertia scrolling
+            without any licensing restrictions. Simply include the InertiaPlugin
+            to unlock advanced touch interactions and momentum scrolling.
+          </div>
+        </section>
+
+        <!-- Basic Usage Section -->
+        <section id="basic-usage" class="content-section">
+          <h2 class="content-title">Basic Usage</h2>
+
+          <h3 class="content-subtitle">Minimal HTML Structure</h3>
+          <p class="content-text">
+            The carousel requires a container element with child slides. No
+            specific CSS classes are needed - the carousel handles all styling
+            automatically:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>HTML Structure</span>
+              <button class="copy-btn" onclick="copyCode('basic-html')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="basic-html">&lt;div id="my-carousel"&gt;
+  &lt;div class="slide"&gt;
+    &lt;h3&gt;Slide 1&lt;/h3&gt;
+    &lt;p&gt;Your content here&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="slide"&gt;
+    &lt;h3&gt;Slide 2&lt;/h3&gt;
+    &lt;p&gt;Your content here&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="slide"&gt;
+    &lt;h3&gt;Slide 3&lt;/h3&gt;
+    &lt;p&gt;Your content here&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Basic Initialization</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Simple Setup</span>
+              <button class="copy-btn" onclick="copyCode('basic-js-simple')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="basic-js-simple">// Minimal initialization
+const carousel = horizontalLoop("#my-carousel");
+
+// With basic options
+const carousel = horizontalLoop("#my-carousel", {
+  speed: 1,      // Animation speed multiplier
+  gap: "20px",   // Space between slides
+  paused: false  // Start playing immediately
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Advanced Configuration</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Full-Featured Setup</span>
+              <button class="copy-btn" onclick="copyCode('basic-js')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="basic-js">const carousel = horizontalLoop("#my-carousel", {
+  // Responsive breakpoints
+  responsive: {
+    0: { items: 1 },      // Mobile: 1 slide visible
+    768: { items: 2 },    // Tablet: 2 slides visible
+    1024: { items: 3 },   // Desktop: 3 slides visible
+  },
+  
+  // Animation settings
+  speed: 1.5,             // Slightly faster than default
+  gap: "24px",            // Consistent spacing
+  
+  // Interaction options
+  draggable: true,        // Enable touch/mouse dragging
+  snap: 1,                // Snap to nearest slide
+  center: false,          // Don't center active slide
+  
+  // Autoplay configuration
+  autoplayDelay: 3,       // 3 seconds between advances
+  paused: false,          // Start immediately
+  reversed: false,        // Move left to right
+  
+  // Navigation elements
+  prevNav: "#prev-btn",   // Previous button selector
+  nextNav: "#next-btn",   // Next button selector
+  dots: "#pagination",    // Dots container selector
+  
+  // Accessibility
+  ariaLabel: "Product showcase",
+  accessibilityEnabled: true,
+  
+  // Callbacks
+  onChange: ({ currentIndex, currentItem, totalItems }) => {
+    console.log(`Showing slide ${currentIndex + 1} of ${totalItems}`);
+    
+    // Update custom UI elements
+    updateSlideCounter(currentIndex + 1, totalItems);
+    updateSlideDescription(currentItem);
+  },
+  
+  onInitialized: (payload) => {
+    console.log("Carousel ready!", payload);
+    // Hide loading indicator, start additional animations, etc.
+  },
+  
+  // Development
+  debug: false  // Enable for development
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Error Handling</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Safe Initialization</span>
+              <button class="copy-btn" onclick="copyCode('safe-init')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="safe-init">// Always check for successful initialization
+const carousel = horizontalLoop("#my-carousel", config);
+
+if (carousel) {
+  console.log("Carousel initialized successfully");
+  
+  // Store reference for cleanup
+  window.myCarousel = carousel;
+} else {
+  console.error("Failed to initialize carousel");
+  // Handle fallback UI or show error message
+}</code></pre>
+          </div>
+        </section>
+
+        <!-- Options Section -->
+        <section id="options" class="content-section">
+          <h2 class="content-title">Configuration Options</h2>
+          <p class="content-text">
+            Complete reference of all configuration options with detailed
+            explanations and usage examples:
+          </p>
+
+          <table class="options-table">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>responsive</code></td>
+                <td><code>Object|null</code></td>
+                <td><code>null</code></td>
+                <td>
+                  Breakpoint mapping for responsive layouts. Keys are pixel
+                  widths, values are <code>{items: number}</code> objects
+                </td>
+              </tr>
+              <tr>
+                <td><code>speed</code></td>
+                <td><code>number</code></td>
+                <td><code>1</code></td>
+                <td>
+                  Animation speed multiplier. 1 ≈ 100px/second. Higher values =
+                  faster movement
+                </td>
+              </tr>
+              <tr>
+                <td><code>gap</code></td>
+                <td><code>string|number</code></td>
+                <td><code>"0px"</code></td>
+                <td>
+                  Space between slides. CSS length values ("20px", "1rem") or
+                  numbers (converted to px)
+                </td>
+              </tr>
+              <tr>
+                <td><code>draggable</code></td>
+                <td><code>boolean</code></td>
+                <td><code>false</code></td>
+                <td>
+                  Enable touch/mouse dragging. Requires GSAP Draggable plugin
+                </td>
+              </tr>
+              <tr>
+                <td><code>repeat</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>
+                  Number of complete loop cycles. -1 for infinite, 0 for
+                  continuous
+                </td>
+              </tr>
+              <tr>
+                <td><code>paused</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>
+                  Start in paused state. Set to false for immediate autoplay
+                </td>
+              </tr>
+              <tr>
+                <td><code>autoplayDelay</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>
+                  Seconds between automatic slide advances. 0 disables autoplay
+                </td>
+              </tr>
+              <tr>
+                <td><code>reversed</code></td>
+                <td><code>boolean</code></td>
+                <td><code>false</code></td>
+                <td>Reverse animation direction (right to left)</td>
+              </tr>
+              <tr>
+                <td><code>prevNav</code></td>
+                <td><code>Element|string|Array</code></td>
+                <td><code>null</code></td>
+                <td>
+                  Previous button element, selector, or [element, options] tuple
+                </td>
+              </tr>
+              <tr>
+                <td><code>nextNav</code></td>
+                <td><code>Element|string|Array</code></td>
+                <td><code>null</code></td>
+                <td>
+                  Next button element, selector, or [element, options] tuple
+                </td>
+              </tr>
+              <tr>
+                <td><code>dots</code></td>
+                <td><code>Element|string|Array</code></td>
+                <td><code>null</code></td>
+                <td>
+                  Pagination container element, selector, or [container,
+                  options] tuple
+                </td>
+              </tr>
+              <tr>
+                <td><code>snap</code></td>
+                <td><code>number|false</code></td>
+                <td><code>1</code></td>
+                <td>
+                  Snap increment in slides. false disables snapping. Useful for
+                  partial slide views
+                </td>
+              </tr>
+              <tr>
+                <td><code>center</code></td>
+                <td><code>boolean</code></td>
+                <td><code>false</code></td>
+                <td>
+                  Center active slide in viewport. Useful for highlighting
+                  current item
+                </td>
+              </tr>
+              <tr>
+                <td><code>updateOnlyOnSettle</code></td>
+                <td><code>boolean</code></td>
+                <td><code>false</code></td>
+                <td>
+                  Fire onChange only after drag/scroll settles. Improves
+                  performance with expensive callbacks
+                </td>
+              </tr>
+              <tr>
+                <td><code>onChange</code></td>
+                <td><code>Function|null</code></td>
+                <td><code>null</code></td>
+                <td>
+                  Callback when active slide changes. Receives payload object
+                  with slide data
+                </td>
+              </tr>
+              <tr>
+                <td><code>onInitialized</code></td>
+                <td><code>Function|null</code></td>
+                <td><code>null</code></td>
+                <td>
+                  Callback after carousel setup completes. Useful for hiding
+                  loading states
+                </td>
+              </tr>
+              <tr>
+                <td><code>ariaLabel</code></td>
+                <td><code>string</code></td>
+                <td><code>"Carousel"</code></td>
+                <td>
+                  ARIA label for the carousel container. Important for screen
+                  readers
+                </td>
+              </tr>
+              <tr>
+                <td><code>debug</code></td>
+                <td><code>boolean</code></td>
+                <td><code>false</code></td>
+                <td>
+                  Enable detailed console logging. Includes timing, positioning,
+                  and state information
+                </td>
+              </tr>
+              <tr>
+                <td><code>accessibilityEnabled</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>
+                  Enable ARIA roles, keyboard navigation, and screen reader
+                  support
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 class="content-subtitle">Advanced Option Examples</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Navigation with Options</span>
+              <button class="copy-btn" onclick="copyCode('nav-options')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="nav-options">const carousel = horizontalLoop("#carousel", {
+  // Navigation elements with custom animation options
+  prevNav: ["#prev-btn", { duration: 0.8, ease: "power2.inOut" }],
+  nextNav: ["#next-btn", { duration: 0.8, ease: "power2.inOut" }],
+  
+  // Dots with custom animation
+  dots: ["#pagination", { duration: 0.5, ease: "power1.out" }],
+});</code></pre>
+          </div>
+        </section>
+
+        <!-- Responsive Section -->
+        <section id="responsive" class="content-section">
+          <h2 class="content-title">Responsive Configuration</h2>
+          <p class="content-text">
+            The responsive system uses CSS custom properties and
+            breakpoint-based configurations to create fluid, adaptive layouts
+            that work across all device sizes.
+          </p>
+
+          <h3 class="content-subtitle">Basic Responsive Setup</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Mobile-First Approach</span>
+              <button class="copy-btn" onclick="copyCode('responsive-basic')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="responsive-basic">const carousel = horizontalLoop("#carousel", {
+  responsive: {
+    0: { items: 1 },      // Mobile phones
+    640: { items: 2 },    // Large phones / small tablets
+    768: { items: 2 },    // Tablets
+    1024: { items: 3 },   // Small desktop
+    1280: { items: 4 },   // Large desktop
+    1536: { items: 5 },   // Extra large screens
+  },
+  gap: "16px",
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Advanced Responsive Configuration</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Complex Breakpoint System</span>
+              <button
+                class="copy-btn"
+                onclick="copyCode('responsive-advanced')"
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code id="responsive-advanced">const carousel = horizontalLoop("#carousel", {
+  responsive: {
+    // Mobile portrait
+    0: { items: 1 },
+    
+    // Mobile landscape / small tablets
+    480: { items: 1.5 },  // Show partial next slide
+    
+    // Tablets
+    768: { items: 2.2 },  // Show 2 full + partial 3rd slide
+    
+    // Small desktop
+    1024: { items: 3 },
+    
+    // Large desktop - different approach for wide screens
+    1440: { items: 4 },
+    
+    // Ultra-wide screens
+    1920: { items: 5 },
+  },
+  
+  // Responsive gap sizing
+  gap: window.innerWidth < 768 ? "12px" : "24px",
+  
+  // Different snap behavior on mobile
+  snap: window.innerWidth < 768 ? 1 : 0.5,
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">CSS Integration</h3>
+          <p class="content-text">
+            The carousel sets CSS custom properties that you can use for
+            additional responsive styling:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>CSS Custom Properties</span>
+              <button class="copy-btn" onclick="copyCode('responsive-css')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="responsive-css">/* The carousel automatically sets these CSS custom properties: */
+.carousel-container {
+  --items-per-row: 3;  /* Current items visible */
+  --gap: 20px;         /* Current gap size */
+}
+
+/* Use them in your CSS for consistent styling */
+.carousel-slide {
+  /* Slide width automatically calculated */
+  flex: 0 0 calc(100% / var(--items-per-row) - (var(--gap) * (var(--items-per-row) - 1) / var(--items-per-row)));
+  
+  /* Additional responsive styles */
+  padding: calc(var(--gap) / 2);
+}
+
+/* Override styles at specific breakpoints */
+@media (max-width: 767px) {
+  .carousel-slide {
+    padding: 8px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .carousel-slide {
+    padding: 16px;
+  }
+}</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Dynamic Responsive Updates</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Runtime Responsive Changes</span>
+              <button class="copy-btn" onclick="copyCode('responsive-dynamic')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="responsive-dynamic">// Listen for orientation changes
+window.addEventListener('orientationchange', () => {
+  // Wait for orientation change to complete
+  setTimeout(() => {
+    carousel.refresh(true);  // Deep refresh after orientation change
+  }, 100);
+});
+
+// Update responsive config dynamically
+function updateCarouselForViewport() {
+  const width = window.innerWidth;
+  
+  // You can't change the responsive config after initialization,
+  // but you can work with the existing breakpoints
+  if (width < 768) {
+    carousel.pauseAutoplay();  // Pause on mobile to save battery
+  } else {
+    carousel.playAutoplay();   // Resume on larger screens
+  }
+}
+
+// Debounced resize handler
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(updateCarouselForViewport, 150);
+});</code></pre>
+          </div>
+
+          <div class="info-box">
+            <strong>Automatic Refresh:</strong> The carousel automatically
+            handles window resize events and updates layouts using
+            ResizeObserver when available, falling back to window resize events
+            for broader compatibility.
+          </div>
+
+          <div class="warning-box">
+            <strong>Performance Tip:</strong> Responsive breakpoints are
+            processed in ascending order. Define them from smallest to largest
+            screen sizes for optimal performance.
+          </div>
+        </section>
+
+        <!-- Methods Section -->
+        <section id="methods" class="content-section">
+          <h2 class="content-title">API Methods</h2>
+          <p class="content-text">
+            The carousel returns a GSAP Timeline instance with additional
+            methods for programmatic control. All methods include error handling
+            and state validation.
+          </p>
+
+          <h3 class="content-subtitle">Navigation Methods</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Slide Navigation</span>
+              <button class="copy-btn" onclick="copyCode('methods-nav')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="methods-nav">// Navigate to specific slide by index (0-based)
+carousel.toIndex(2);  // Go to 3rd slide
+
+// Navigate with custom animation options
+carousel.toIndex(2, {
+  duration: 1.2,           // Custom duration
+  ease: "power2.inOut",    // Custom easing
+  onComplete: () => {      // Callback when animation completes
+    console.log("Animation finished");
+  }
+});
+
+// Navigate to next/previous slide
+carousel.next();                    // Next slide with default options
+carousel.previous();                // Previous slide with default options
+
+// Navigate with options
+carousel.next({
+  duration: 0.8,
+  ease: "back.out(1.7)"
+});
+
+// Get current slide index
+const currentIndex = carousel.current();  // Returns current slide index (0-based)
+console.log(`Currently on slide ${currentIndex + 1}`);</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Playback Control</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Animation Control</span>
+              <button class="copy-btn" onclick="copyCode('methods-playback')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="methods-playback">// Autoplay control (works with autoplayDelay setting)
+carousel.pauseAutoplay();           // Pause automatic advancement
+carousel.playAutoplay();            // Resume automatic advancement
+
+// Standard GSAP timeline controls
+carousel.play();                    // Play the continuous loop
+carousel.pause();                   // Pause at current position
+carousel.reverse();                 // Reverse direction
+carousel.resume();                  // Resume from paused state
+
+// Timeline properties
+console.log(carousel.duration());   // Get total loop duration
+console.log(carousel.progress());   // Get current progress (0-1)
+console.log(carousel.time());       // Get current time position
+
+// Set specific timeline position
+carousel.progress(0.5);             // Jump to middle of loop
+carousel.time(2);                   // Jump to 2 seconds into loop</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Utility Methods</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Layout and State Management</span>
+              <button class="copy-btn" onclick="copyCode('methods-utility')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="methods-utility">// Refresh layout calculations (after DOM changes)
+carousel.refresh();                 // Light refresh - recalculate positions
+
+carousel.refresh(true);             // Deep refresh - rebuild entire timeline
+                                   // Use after adding/removing slides
+
+// Get slide information
+const closestIndex = carousel.closestIndex();      // Don't update internal state
+const currentIndex = carousel.closestIndex(true);  // Update internal state
+
+// State inspection (debug mode only)
+if (carousel.getState) {
+  const state = carousel.getState();
+  console.log("Current state:", state);
+  console.log("Configuration:", state.config);
+  console.log("Timeline properties:", {
+    duration: carousel.duration(),
+    progress: carousel.progress(),
+    paused: carousel.paused()
+  });
+}
+
+// Check if carousel is destroyed
+const isDestroyed = carousel.paused() && !carousel.duration();
+
+// Cleanup (important for memory management)
+carousel.cleanup();                 // Remove all listeners and animations
+                                   // Call when removing carousel from DOM</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Advanced Timeline Manipulation</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>GSAP Timeline Features</span>
+              <button class="copy-btn" onclick="copyCode('methods-advanced')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="methods-advanced">// Speed control
+carousel.timeScale(0.5);            // Play at half speed
+carousel.timeScale(2);              // Play at double speed
+carousel.timeScale(1);              // Reset to normal speed
+
+// Event callbacks (GSAP timeline events)
+carousel.eventCallback("onComplete", () => {
+  console.log("Loop cycle completed");
+});
+
+carousel.eventCallback("onUpdate", () => {
+  // Called continuously during animation
+  const progress = carousel.progress();
+  updateProgressBar(progress);
+});
+
+// Kill specific animations
+gsap.killTweensOf(carousel);        // Kill the main timeline
+carousel.kill();                    // Kill timeline and all associated animations
+
+// Chain method calls
+carousel
+  .pause()
+  .toIndex(0, { duration: 1 })
+  .play();</code></pre>
+          </div>
+
+          <div class="info-box">
+            <strong>Full GSAP Timeline Integration:</strong> The carousel
+            returns a native GSAP Timeline instance, which means you can use any
+            GSAP Timeline methods, properties, and callbacks available in the
+            GSAP API. This includes method chaining, event callbacks, timeline
+            controls, and all advanced GSAP features.
+
+            <br /><br />
+
+            <strong>Available Methods & Callbacks:</strong> <code>play()</code>,
+            <code>pause()</code>, <code>reverse()</code>,
+            <code>restart()</code>, <code>seek()</code>,
+            <code>timeScale()</code>, <code>duration()</code>,
+            <code>progress()</code>, <code>eventCallback()</code>, and many
+            more.
+
+            <br /><br />
+
+            📖 <strong>Complete Reference:</strong>
+            <a
+              href="https://gsap.com/docs/v3/GSAP/Timeline/"
+              target="_blank"
+              rel="noopener"
+              >GSAP Timeline Documentation</a
+            >
+            - See all available methods, properties, and callbacks you can use
+            with your carousel instance.
+          </div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" class="content-section">
+          <h2 class="content-title">Events & Callbacks</h2>
+          <p class="content-text">
+            The carousel provides comprehensive callback system for responding
+            to user interactions and state changes. All callbacks receive
+            detailed payload objects with relevant data.
+          </p>
+
+          <h3 class="content-subtitle">onChange Callback</h3>
+          <p class="content-text">
+            Fired when the active slide changes, providing comprehensive
+            information about the current state:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>onChange Event Details</span>
+              <button class="copy-btn" onclick="copyCode('events-onchange')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="events-onchange">const carousel = horizontalLoop("#carousel", {
+  onChange: (payload) => {
+    // Payload object contains:
+    console.log("Current slide element:", payload.currentItem);        // HTMLElement
+    console.log("Current slide index:", payload.currentIndex);         // 0-based index
+    console.log("Total slides:", payload.totalItems);                  // Total count
+    console.log("Animation progress:", payload.progress);              // 0-1 progress
+    console.log("Current slide width:", payload.slideWidth);          // Width in pixels
+    console.log("Timeline instance:", payload.timeline);              // GSAP timeline
+    console.log("Configuration:", payload.config);                    // Current config
+    
+    // Practical usage examples:
+    
+    // Update slide counter UI
+    document.querySelector('.slide-counter').textContent = 
+      `${payload.currentIndex + 1} / ${payload.totalItems}`;
+    
+    // Update slide title
+    const title = payload.currentItem.querySelector('h3')?.textContent;
+    if (title) {
+      document.querySelector('.current-slide-title').textContent = title;
+    }
+    
+    // Update progress bar
+    const progressPercent = (payload.currentIndex / (payload.totalItems - 1)) * 100;
+    document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
+    
+    // Analytics tracking
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'carousel_slide_change', {
+        slide_index: payload.currentIndex,
+        slide_title: title || `Slide ${payload.currentIndex + 1}`
+      });
+    }
+    
+    // Conditional logic based on slide
+    if (payload.currentIndex === 0) {
+      document.body.classList.add('first-slide-active');
+    } else {
+      document.body.classList.remove('first-slide-active');
+    }
+    
+    // Load lazy content for upcoming slides
+    const nextIndex = (payload.currentIndex + 1) % payload.totalItems;
+    const nextSlide = document.querySelectorAll('#carousel > *')[nextIndex];
+    loadLazyContent(nextSlide);
+  },
+  
+  // Performance optimization: only fire after settling
+  updateOnlyOnSettle: true,  // Reduces callback frequency during dragging
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">onInitialized Callback</h3>
+          <p class="content-text">
+            Fired once after the carousel completes setup, ideal for
+            initialization tasks:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Initialization Handling</span>
+              <button class="copy-btn" onclick="copyCode('events-initialized')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="events-initialized">const carousel = horizontalLoop("#carousel", {
+  onInitialized: (payload) => {
+    console.log("Carousel fully initialized!", payload);
+    
+    // Hide loading spinner
+    document.querySelector('.carousel-loading')?.remove();
+    
+    // Show carousel with fade-in effect
+    gsap.to("#carousel", {
+      opacity: 1,
+      duration: 0.5,
+      ease: "power2.out"
+    });
+    
+    // Initialize related UI components
+    initializeCarouselControls(payload);
+    
+    // Set up keyboard shortcuts
+    setupKeyboardShortcuts(payload.timeline);
+    
+    // Start analytics session
+    trackCarouselSession({
+      totalSlides: payload.totalItems,
+      hasAutoplay: payload.config.autoplayDelay > 0,
+      hasDragging: payload.config.draggable
+    });
+    
+    // Preload images in slides
+    preloadSlideImages(payload.timeline);
+    
+    // Initialize intersection observer for performance
+    setupSlideVisibilityTracking();
+  }
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">GSAP Timeline Events</h3>
+          <p class="content-text">
+            Since the carousel returns a GSAP Timeline, you can use all standard
+            GSAP event callbacks:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>GSAP Timeline Events</span>
+              <button class="copy-btn" onclick="copyCode('events-gsap')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="events-gsap">// Set up GSAP timeline event callbacks
+carousel.eventCallback("onStart", () => {
+  console.log("Carousel animation started");
+  document.body.classList.add('carousel-animating');
+});
+
+carousel.eventCallback("onUpdate", () => {
+  // Called on every frame during animation
+  const progress = carousel.progress();
+  
+  // Update visual progress indicator
+  const indicator = document.querySelector('.carousel-progress');
+  if (indicator) {
+    indicator.style.transform = `scaleX(${progress})`;
+  }
+  
+  // Parallax effect based on carousel progress
+  gsap.set('.background-element', {
+    x: progress * -100,
+    ease: "none"
+  });
+});
+
+carousel.eventCallback("onComplete", () => {
+  console.log("Carousel loop cycle completed");
+  
+  // This fires after each complete loop when repeat is set
+  updateLoopCounter();
+});
+
+carousel.eventCallback("onReverseComplete", () => {
+  console.log("Reverse animation completed");
+});
+
+// Remove event callbacks
+carousel.eventCallback("onUpdate", null);  // Remove specific callback
+carousel.eventCallback(null);              // Remove all callbacks</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Custom Event System</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Custom Events with EventTarget</span>
+              <button class="copy-btn" onclick="copyCode('events-custom')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="events-custom">// Extend carousel with custom event system
+const carouselEvents = new EventTarget();
+
+const carousel = horizontalLoop("#carousel", {
+  onChange: (payload) => {
+    // Dispatch custom events
+    carouselEvents.dispatchEvent(new CustomEvent('slideChange', {
+      detail: payload
+    }));
+    
+    // Dispatch specific events based on slide content
+    const slideType = payload.currentItem.dataset.type;
+    if (slideType) {
+      carouselEvents.dispatchEvent(new CustomEvent(`slide${slideType}Active`, {
+        detail: payload
+      }));
+    }
+  }
+});
+
+// Listen for custom events
+carouselEvents.addEventListener('slideChange', (event) => {
+  const { currentIndex, currentItem } = event.detail;
+  console.log(`Slide changed to index ${currentIndex}`);
+});
+
+carouselEvents.addEventListener('slideVideoActive', (event) => {
+  // Handle video slides specifically
+  const videoElement = event.detail.currentItem.querySelector('video');
+  if (videoElement) {
+    videoElement.play();
+  }
+});
+
+carouselEvents.addEventListener('slideImageActive', (event) => {
+  // Handle image slides with specific logic
+  const img = event.detail.currentItem.querySelector('img');
+  if (img && !img.complete) {
+    // Show loading spinner for unloaded images
+    showImageLoading(img);
+  }
+});</code></pre>
+          </div>
+
+          <div class="warning-box">
+            <strong>Performance Consideration:</strong> The onChange callback
+            can fire frequently during dragging. Use
+            <code>updateOnlyOnSettle: true</code> if your callback performs
+            expensive operations like DOM manipulation or API calls.
+
+            <br /><br />
+
+            <strong>Important:</strong> <code>updateOnlyOnSettle</code> only
+            affects the <code>onChange</code> callback defined in the carousel
+            configuration. If you need to receive every update while using
+            <code>updateOnlyOnSettle</code>, you can use the timeline's native
+            <code>eventCallback("onUpdate")</code> method instead:
+
+            <br /><br />
+
+            <code
+              >carousel.eventCallback("onUpdate", () => { /* fires on every
+              frame */ });</code
+            >
+          </div>
+        </section>
+
+        <!-- Browser Support Section -->
+        <section id="browser-support" class="content-section">
+          <h2 class="content-title">Browser Support</h2>
+
+          <h3 class="content-subtitle">Supported Browsers</h3>
+          <table class="options-table">
+            <thead>
+              <tr>
+                <th>Browser</th>
+                <th>Minimum Version</th>
+                <th>Features</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Chrome</strong></td>
+                <td>60+</td>
+                <td>All features</td>
+                <td>Full support including advanced dragging</td>
+              </tr>
+              <tr>
+                <td><strong>Firefox</strong></td>
+                <td>55+</td>
+                <td>All features</td>
+                <td>Excellent performance</td>
+              </tr>
+              <tr>
+                <td><strong>Safari</strong></td>
+                <td>12+</td>
+                <td>All features</td>
+                <td>iOS Safari 12+ also supported</td>
+              </tr>
+              <tr>
+                <td><strong>Edge</strong></td>
+                <td>79+ (Chromium)</td>
+                <td>All features</td>
+                <td>Legacy Edge not supported</td>
+              </tr>
+              <tr>
+                <td><strong>Chrome Mobile</strong></td>
+                <td>60+</td>
+                <td>All features</td>
+                <td>Touch interactions work perfectly</td>
+              </tr>
+              <tr>
+                <td><strong>Samsung Internet</strong></td>
+                <td>8.2+</td>
+                <td>Most features</td>
+                <td>Some advanced CSS features limited</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 class="content-subtitle">Required Browser Features</h3>
+          <ul style="line-height: 1.8; margin-bottom: 2rem">
+            <li>
+              <strong>ES6 Support:</strong> Arrow functions, const/let, template
+              literals
+            </li>
+            <li>
+              <strong>Modern DOM APIs:</strong> querySelector, addEventListener,
+              classList
+            </li>
+            <li>
+              <strong>CSS Features:</strong> CSS Custom Properties, Flexbox,
+              Transform3d
+            </li>
+            <li>
+              <strong>Optional APIs:</strong> ResizeObserver (graceful
+              fallback), IntersectionObserver
+            </li>
+          </ul>
+
+          <h3 class="content-subtitle">Feature Detection</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Browser Capability Checking</span>
+              <button class="copy-btn" onclick="copyCode('browser-detection')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="browser-detection">// The carousel automatically detects browser capabilities
+function checkBrowserSupport() {
+  const checks = {
+    gsap: typeof gsap !== 'undefined',
+    es6: (() => {
+      try {
+        new Function('const x = () => {}; class Y {}');
+        return true;
+      } catch (e) {
+        return false;
+      }
+    })(),
+    customProperties: CSS.supports('--foo', 'red'),
+    resizeObserver: typeof ResizeObserver !== 'undefined',
+    draggable: typeof Draggable !== 'undefined',
+    intersectionObserver: typeof IntersectionObserver !== 'undefined'
+  };
+  
+  console.log('Browser support check:', checks);
+  return checks;
+}
+
+// Initialize carousel with fallbacks
+function initCarouselWithFallback() {
+  const support = checkBrowserSupport();
+  
+  if (!support.gsap) {
+    console.error('GSAP not found - carousel cannot initialize');
+    showStaticFallback();
+    return;
+  }
+  
+  if (!support.es6) {
+    console.warn('Limited ES6 support - some features may not work');
+  }
+  
+  const config = {
+    draggable: support.draggable,
+    // Adjust config based on capabilities
+  };
+  
+  return horizontalLoop('#carousel', config);
+}
+
+function showStaticFallback() {
+  // Show a basic CSS-only carousel or static grid
+  document.querySelector('.carousel-container').style.overflowX = 'auto';
+  document.querySelector('.carousel-container').style.scrollBehavior = 'smooth';
+}</code></pre>
+          </div>
+
+          <div class="warning-box">
+            <strong>Internet Explorer:</strong> Not supported. The carousel
+            requires modern browser features that are not available in IE11 or
+            earlier. Consider showing a static fallback for IE users.
+          </div>
+
+          <div class="info-box">
+            <strong>Progressive Enhancement:</strong> The carousel degrades
+            gracefully when advanced features aren't available. Without
+            JavaScript, slides are still viewable as a horizontal scrolling
+            container.
+          </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section id="troubleshooting" class="content-section">
+          <h2 class="content-title">Troubleshooting</h2>
+
+          <h3 class="content-subtitle">Common Issues and Solutions</h3>
+
+          <div class="info-box">
+            <strong>Carousel not initializing:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.6">
+              <li>
+                <strong>Check GSAP loading:</strong> Ensure GSAP 3.12+ loads
+                before the carousel script
+              </li>
+              <li>
+                <strong>Verify DOM structure:</strong> Container element must
+                exist with child elements
+              </li>
+              <li>
+                <strong>Console errors:</strong> Check browser console for
+                JavaScript errors
+              </li>
+              <li>
+                <strong>Element timing:</strong> Initialize after DOM is ready
+                or in window load event
+              </li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <strong>Responsive layout issues:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.6">
+              <li>
+                <strong>Breakpoint order:</strong> Ensure responsive breakpoints
+                are in ascending order (0, 640, 768, etc.)
+              </li>
+              <li>
+                <strong>CSS conflicts:</strong> Check for conflicting CSS that
+                overrides carousel flex properties
+              </li>
+              <li>
+                <strong>ResizeObserver errors:</strong> Update to a browser that
+                supports ResizeObserver or add a polyfill
+              </li>
+              <li>
+                <strong>Manual refresh:</strong> Call
+                <code>carousel.refresh(true)</code> after dynamic content
+                changes
+              </li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <strong>Dragging not working:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.6">
+              <li>
+                <strong>Plugin missing:</strong> Include GSAP Draggable plugin
+              </li>
+              <li>
+                <strong>Configuration:</strong> Set
+                <code>draggable: true</code> in carousel options
+              </li>
+              <li>
+                <strong>InertiaPlugin:</strong> For momentum scrolling, include
+                InertiaPlugin (requires Club GreenSock)
+              </li>
+              <li>
+                <strong>Touch conflicts:</strong> Check for CSS
+                <code>touch-action</code> properties that might interfere
+              </li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <strong>Performance issues:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.6">
+              <li>
+                <strong>Heavy callbacks:</strong> Enable
+                <code>updateOnlyOnSettle: true</code> for expensive onChange
+                callbacks
+              </li>
+              <li>
+                <strong>Large datasets:</strong> Consider virtual scrolling for
+                50+ slides
+              </li>
+              <li>
+                <strong>Image optimization:</strong> Use appropriate image sizes
+                and lazy loading
+              </li>
+              <li>
+                <strong>Memory leaks:</strong> Always call
+                <code>carousel.cleanup()</code> when destroying
+              </li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <strong>Accessibility problems:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.6">
+              <li>
+                <strong>Screen readers:</strong> Verify
+                <code>accessibilityEnabled: true</code> (default)
+              </li>
+              <li>
+                <strong>Keyboard navigation:</strong> Test with Tab, Arrow keys,
+                Enter, and Space
+              </li>
+              <li>
+                <strong>ARIA labels:</strong> Set meaningful
+                <code>ariaLabel</code> in configuration
+              </li>
+              <li>
+                <strong>Focus management:</strong> Ensure buttons and slides
+                receive proper focus
+              </li>
+            </ul>
+          </div>
+
+          <h3 class="content-subtitle">Debug Mode</h3>
+          <p class="content-text">
+            Enable detailed logging to diagnose issues:
+          </p>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Debug Configuration</span>
+              <button class="copy-btn" onclick="copyCode('debug-config')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="debug-config">const carousel = horizontalLoop("#carousel", {
+  debug: true,  // Enables detailed console logging
+  // ... other options
+});
+
+// Access debug information
+if (carousel && carousel.getState) {
+  const debugInfo = carousel.getState();
+  console.log("Carousel state:", debugInfo);
+  
+  // Log configuration
+  console.log("Configuration:", debugInfo.config);
+  
+  // Log timeline properties  
+  console.log("Timeline duration:", carousel.duration());
+  console.log("Current progress:", carousel.progress());
+  console.log("Is paused:", carousel.paused());
+}
+
+// Monitor carousel events
+carousel.eventCallback("onUpdate", () => {
+  console.log("Update:", {
+    time: carousel.time(),
+    progress: carousel.progress(),
+    currentSlide: carousel.current()
+  });
+});</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Error Handling Patterns</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Robust Error Handling</span>
+              <button class="copy-btn" onclick="copyCode('error-handling')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="error-handling">function initializeCarouselSafely(selector, config = {}) {
+  try {
+    // Check prerequisites
+    if (typeof gsap === 'undefined') {
+      throw new Error('GSAP library not found');
+    }
+    
+    if (gsap.version < '3.12') {
+      console.warn('GSAP version 3.12+ recommended for best compatibility');
+    }
+    
+    // Check container element
+    const container = document.querySelector(selector);
+    if (!container) {
+      throw new Error(`Container element not found: ${selector}`);
+    }
+    
+    const slides = container.children;
+    if (slides.length === 0) {
+      throw new Error('No slides found in container');
+    }
+    
+    // Initialize with error boundaries
+    const carousel = horizontalLoop(selector, {
+      ...config,
+      debug: process.env.NODE_ENV === 'development',
+      
+      // Wrap callbacks with error handling
+      onChange: config.onChange ? (payload) => {
+        try {
+          config.onChange(payload);
+        } catch (error) {
+          console.error('Error in onChange callback:', error);
+        }
+      } : null,
+      
+      onInitialized: (payload) => {
+        console.log('Carousel initialized successfully');
+        if (config.onInitialized) {
+          try {
+            config.onInitialized(payload);
+          } catch (error) {
+            console.error('Error in onInitialized callback:', error);
+          }
+        }
+      }
+    });
+    
+    if (!carousel) {
+      throw new Error('Carousel initialization failed');
+    }
+    
+    // Set up error recovery
+    window.addEventListener('error', (event) => {
+      if (event.filename?.includes('gsap') || event.message?.includes('carousel')) {
+        console.error('Carousel-related error detected:', event.error);
+        // Could trigger fallback UI here
+      }
+    });
+    
+    return carousel;
+    
+  } catch (error) {
+    console.error('Failed to initialize carousel:', error);
+    
+    // Show fallback UI
+    showCarouselFallback(selector);
+    
+    return null;
+  }
+}
+
+function showCarouselFallback(selector) {
+  const container = document.querySelector(selector);
+  if (container) {
+    // Convert to simple scrollable container
+    container.style.overflowX = 'auto';
+    container.style.display = 'flex';
+    container.style.gap = '1rem';
+    
+    // Add scroll buttons if needed
+    const wrapper = container.parentElement;
+    if (wrapper) {
+      wrapper.insertAdjacentHTML('beforeend', `
+        <div class="fallback-notice">
+          <p>Interactive carousel unavailable. Use scroll or swipe to navigate.</p>
+        </div>
+      `);
+    }
+  }
+}</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Common Console Warnings</h3>
+          <div class="warning-box">
+            <strong>"ResizeObserver loop limit exceeded":</strong> This is a
+            browser issue, not a carousel problem. It can be safely ignored or
+            suppress by adding CSS: <code>* { resize: none; }</code>
+          </div>
+
+          <div class="warning-box">
+            <strong>"Unknown config option":</strong> Check for typos in
+            configuration property names. The carousel validates all options and
+            warns about unknown properties.
+          </div>
+
+          <div class="warning-box">
+            <strong>"horizontalLoop: No child elements found":</strong> Ensure
+            the container has direct child elements before initializing the
+            carousel.
+          </div>
+        </section>
+
+        <!-- Performance Section -->
+        <section id="performance" class="content-section">
+          <h2 class="content-title">Performance Tips</h2>
+
+          <h3 class="content-subtitle">Optimization Strategies</h3>
+          <ol style="line-height: 1.8; margin-bottom: 2rem">
+            <li>
+              <strong>Use <code>updateOnlyOnSettle</code></strong> for expensive
+              onChange callbacks to reduce execution frequency during dragging
+              and animations
+            </li>
+            <li>
+              <strong>Enable <code>debug: false</code></strong> in production to
+              eliminate console logging overhead
+            </li>
+            <li>
+              <strong>Call <code>cleanup()</code></strong> when removing
+              carousels from the DOM to prevent memory leaks
+            </li>
+            <li>
+              <strong>Optimize slide content</strong> by using CSS
+              <code>will-change</code> property sparingly and only when needed
+            </li>
+            <li>
+              <strong>Implement lazy loading</strong> for images and heavy
+              content in slides
+            </li>
+            <li>
+              <strong>Use <code>transform3d</code></strong> for hardware
+              acceleration in custom animations
+            </li>
+            <li>
+              <strong>Debounce resize handlers</strong> when implementing custom
+              responsive logic
+            </li>
+            <li>
+              <strong>Minimize DOM queries</strong> in onChange callbacks by
+              caching element references
+            </li>
+          </ol>
+
+          <h3 class="content-subtitle">Performance Monitoring</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Performance Tracking</span>
+              <button
+                class="copy-btn"
+                onclick="copyCode('performance-monitoring')"
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code id="performance-monitoring">// Performance monitoring utility
+class CarouselPerformanceMonitor {
+  constructor(carousel) {
+    this.carousel = carousel;
+    this.metrics = {
+      initTime: 0,
+      frameCount: 0,
+      lastFrameTime: 0,
+      averageFPS: 0,
+      memoryUsage: []
+    };
+    
+    this.startMonitoring();
+  }
+  
+  startMonitoring() {
+    const startTime = performance.now();
+    
+    // Monitor initialization time
+    if (this.carousel.eventCallback) {
+      this.carousel.eventCallback('onUpdate', () => {
+        if (!this.metrics.initTime) {
+          this.metrics.initTime = performance.now() - startTime;
+          console.log(`Carousel first frame: ${this.metrics.initTime.toFixed(2)}ms`);
+        }
+        this.trackFrameRate();
+        this.trackMemoryUsage();
+      });
+    }
+  }
+  
+  trackFrameRate() {
+    const now = performance.now();
+    if (this.metrics.lastFrameTime) {
+      const delta = now - this.metrics.lastFrameTime;
+      this.metrics.frameCount++;
+      
+      // Calculate rolling average FPS
+      const fps = 1000 / delta;
+      this.metrics.averageFPS = (this.metrics.averageFPS + fps) / 2;
+      
+      // Warn if FPS drops below 30
+      if (fps < 30 && this.metrics.frameCount > 10) {
+        console.warn(`Low FPS detected: ${fps.toFixed(1)} fps`);
+      }
+    }
+    this.metrics.lastFrameTime = now;
+  }
+  
+  trackMemoryUsage() {
+    if (performance.memory) {
+      const usage = {
+        used: performance.memory.usedJSHeapSize,
+        total: performance.memory.totalJSHeapSize,
+        limit: performance.memory.jsHeapSizeLimit,
+        timestamp: Date.now()
+      };
+      
+      this.metrics.memoryUsage.push(usage);
+      
+      // Keep only last 50 measurements
+      if (this.metrics.memoryUsage.length > 50) {
+        this.metrics.memoryUsage.shift();
+      }
+      
+      // Check for potential memory leaks
+      if (this.metrics.memoryUsage.length >= 20) {
+        const recent = this.metrics.memoryUsage.slice(-10);
+        const older = this.metrics.memoryUsage.slice(-20, -10);
+        
+        const recentAvg = recent.reduce((sum, m) => sum + m.used, 0) / recent.length;
+        const olderAvg = older.reduce((sum, m) => sum + m.used, 0) / older.length;
+        
+        // If memory usage consistently growing
+        if (recentAvg > olderAvg * 1.1) {
+          console.warn('Potential memory leak detected in carousel');
+        }
+      }
+    }
+  }
+  
+  getReport() {
+    return {
+      ...this.metrics,
+      recommendations: this.generateRecommendations()
+    };
+  }
+  
+  generateRecommendations() {
+    const recommendations = [];
+    
+    if (this.metrics.averageFPS < 45) {
+      recommendations.push('Consider enabling updateOnlyOnSettle for better performance');
+    }
+    
+    if (this.metrics.initTime > 100) {
+      recommendations.push('Consider lazy loading slide content');
+    }
+    
+    const latestMemory = this.metrics.memoryUsage[this.metrics.memoryUsage.length - 1];
+    if (latestMemory && latestMemory.used > 50 * 1024 * 1024) { // 50MB
+      recommendations.push('High memory usage detected - ensure cleanup() is called');
+    }
+    
+    return recommendations;
+  }
+}
+
+// Usage
+const carousel = horizontalLoop('#carousel', config);
+const monitor = new CarouselPerformanceMonitor(carousel);
+
+// Get performance report
+setTimeout(() => {
+  console.log('Performance Report:', monitor.getReport());
+}, 5000);</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Memory Management Best Practices</h3>
+          <div class="code-example">
+            <div class="code-header">
+              <span>Proper Lifecycle Management</span>
+              <button class="copy-btn" onclick="copyCode('memory-management')">
+                Copy
+              </button>
+            </div>
+            <pre><code id="memory-management">// Carousel lifecycle manager
+class CarouselManager {
+  constructor() {
+    this.carousels = new Map();
+    this.setupGlobalCleanup();
+  }
+  
+  create(selector, config) {
+    const carousel = horizontalLoop(selector, {
+      ...config,
+      debug: false, // Always disable in production
+      
+      // Wrap onChange to prevent memory leaks
+      onChange: config.onChange ? (payload) => {
+        // Use WeakRef if available for payload references
+        if (typeof WeakRef !== 'undefined') {
+          const weakPayload = {
+            ...payload,
+            currentItem: new WeakRef(payload.currentItem),
+            timeline: new WeakRef(payload.timeline)
+          };
+          config.onChange(weakPayload);
+        } else {
+          config.onChange(payload);
+        }
+      } : null
+    });
+    
+    if (carousel) {
+      this.carousels.set(selector, carousel);
+    }
+    
+    return carousel;
+  }
+  
+  destroy(selector) {
+    const carousel = this.carousels.get(selector);
+    if (carousel) {
+      carousel.cleanup();
+      this.carousels.delete(selector);
+    }
+  }
+  
+  destroyAll() {
+    this.carousels.forEach((carousel, selector) => {
+      carousel.cleanup();
+    });
+    this.carousels.clear();
+  }
+  
+  setupGlobalCleanup() {
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      this.destroyAll();
+    });
+    
+    // Cleanup on page visibility change (mobile)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // Pause all carousels to save resources
+        this.carousels.forEach(carousel => {
+          carousel.pauseAutoplay();
+        });
+      }
+    });
+  }
+}
+
+// Global manager instance
+const carouselManager = new CarouselManager();
+
+// Usage in your application
+const carousel = carouselManager.create('#carousel', {
+  autoplayDelay: 3,
+  draggable: true
+});
+
+// Clean up when component unmounts
+function cleanupComponent() {
+  carouselManager.destroy('#carousel');
+}</code></pre>
+          </div>
+
+          <h3 class="content-subtitle">Production Optimization Checklist</h3>
+          <ul style="line-height: 1.8; margin-bottom: 2rem">
+            <li>
+              <strong>✓ Set <code>debug: false</code></strong> in production
+              builds
+            </li>
+            <li>
+              <strong>✓ Use <code>updateOnlyOnSettle: true</code></strong> for
+              expensive callbacks
+            </li>
+            <li>
+              <strong>✓ Implement proper cleanup</strong> in component lifecycle
+              methods
+            </li>
+            <li>
+              <strong>✓ Lazy load images</strong> and heavy content in slides
+            </li>
+            <li>
+              <strong>✓ Minimize onChange callback complexity</strong> and use
+              debouncing for heavy operations
+            </li>
+            <li>
+              <strong>✓ Test on low-end devices</strong> and slow networks
+            </li>
+            <li>
+              <strong>✓ Monitor bundle size</strong> and consider code splitting
+              for large carousels
+            </li>
+            <li>
+              <strong>✓ Use intersection observers</strong> for visibility-based
+              optimizations
+            </li>
+          </ul>
+
+          <div class="success-box">
+            <strong>Production Ready:</strong> This carousel has been optimized
+            for production use with automatic cleanup, memory management, error
+            boundaries, and performance monitoring capabilities.
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>GSAP Carousel</h3>
+            <p>Production-ready carousel component built with GSAP.</p>
+          </div>
+          <div class="footer-section">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="docs.html">Documentation</a></li>
+              <li><a href="demos.html">Examples</a></li>
+              <li>
+                <a
+                  href="https://github.com/sagarsantra1/GSAPCarousel"
+                  target="_blank"
+                  >GitHub</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Support</h4>
+            <ul>
+              <li>
+                <a
+                  href="https://github.com/sagarsantra1/GSAPCarousel/issues"
+                  target="_blank"
+                  >Report Issues</a
+                >
+              </li>
+              <li>
+                <a href="https://gsap.com/docs/" target="_blank">GSAP Docs</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 GSAP Carousel. Licensed under MIT.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+      // Documentation specific JavaScript
+      function showSection(sectionId, linkElement) {
+        // Hide all sections
+        document.querySelectorAll(".content-section").forEach((section) => {
+          section.classList.remove("active");
+        });
+
+        // Show target section
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+          targetSection.classList.add("active");
+          targetSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        // Update active link
+        document.querySelectorAll(".sidebar-link").forEach((link) => {
+          link.classList.remove("active");
+        });
+        linkElement.classList.add("active");
+
+        // Close mobile sidebar
+        document.getElementById("docs-sidebar").classList.remove("open");
+
+        // Update URL hash
+        window.location.hash = sectionId;
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("docs-sidebar");
+        sidebar.classList.toggle("open");
+      }
+
+      // Enhanced copy functionality
+      function copyCode(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const text = element.textContent;
+
+        if (navigator.clipboard) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              showCopyFeedback(elementId);
+            })
+            .catch((err) => {
+              fallbackCopyTextToClipboard(text, elementId);
+            });
+        } else {
+          fallbackCopyTextToClipboard(text, elementId);
+        }
+      }
+
+      function fallbackCopyTextToClipboard(text, elementId) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          document.execCommand("copy");
+          showCopyFeedback(elementId);
+        } catch (err) {
+          console.error("Fallback copy failed", err);
+        }
+
+        document.body.removeChild(textArea);
+      }
+
+      function showCopyFeedback(elementId) {
+        const button = document.querySelector(
+          `[onclick="copyCode('${elementId}')"]`
+        );
+        if (button) {
+          const originalText = button.textContent;
+          button.textContent = "Copied!";
+          button.style.background = "#10b981";
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = "";
+          }, 2000);
+        }
+      }
+
+      // Download carousel function
+      function downloadCarousel() {
+        // This would typically download the actual carousel file
+        console.log("Download functionality would be implemented here");
+        alert(
+          "Download functionality would be implemented in the actual application"
+        );
+      }
+
+      // Handle initial hash and browser navigation
+      function handleHashChange() {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+          const targetLink = document.querySelector(`[href="#${hash}"]`);
+          const targetSection = document.getElementById(hash);
+          if (targetLink && targetSection) {
+            showSection(hash, targetLink);
+          }
+        }
+      }
+
+      // Initialize on DOM ready
+      document.addEventListener("DOMContentLoaded", function () {
+        handleHashChange();
+
+        // Handle browser back/forward
+        window.addEventListener("hashchange", handleHashChange);
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            const targetId = this.getAttribute("href").slice(1);
+            const targetElement = document.getElementById(targetId);
+
+            if (targetElement && this.classList.contains("sidebar-link")) {
+              e.preventDefault();
+              showSection(targetId, this);
+            }
+          });
+        });
+
+        // Close mobile sidebar when clicking outside
+        document.addEventListener("click", function (e) {
+          const sidebar = document.getElementById("docs-sidebar");
+          const toggle = document.querySelector(".docs-toggle");
+
+          if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+            sidebar.classList.remove("open");
+          }
+        });
+
+        // Add keyboard navigation
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            document.getElementById("docs-sidebar").classList.remove("open");
+          }
+        });
+      });
+
+      // Add search functionality (basic)
+      function addSearchFunctionality() {
+        // This would add a search input to filter documentation sections
+        const searchInput = document.createElement("input");
+        searchInput.type = "text";
+        searchInput.placeholder = "Search documentation...";
+        searchInput.className = "docs-search";
+
+        // This is a placeholder for search functionality
+        console.log("Search functionality would be implemented here");
+      }
+    </script>
+  </body>
+</html>

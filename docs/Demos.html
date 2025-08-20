@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GSAP Carousel Demos - Interactive Examples</title>
+    <meta
+      name="description"
+      content="Explore stunning GSAP Carousel implementations featuring hero banners, product showcases, testimonials, and marquee animations with smooth transitions and responsive design."
+    />
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+
+    <link rel="stylesheet" href="/docs/css/styles.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <h2>GSAP Carousel</h2>
+        </div>
+        <div class="nav-menu">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="#demos" class="nav-link active">Demos</a>
+          <a href="docs.html" class="nav-link">Docs</a>
+          <button class="btn btn-primary" onclick="downloadCarousel()">
+            <span>📥</span> Download
+          </button>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section
+      class="hero"
+      id="demos"
+      style="height: auto; min-height: 50vh; padding: 120px 0 60px"
+    >
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Live <span class="highlight">Demonstrations</span>
+          </h1>
+          <p class="hero-description">
+            Discover powerful carousel implementations across diverse use cases.
+            Each demo showcases real-world applications with complete source
+            code and interactive controls for hands-on learning.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 1: Hero Image Carousel -->
+    <section class="demo-section">
+      <div class="container">
+        <div class="demo-header">
+          <h2 class="demo-title">Premium Hero Carousel</h2>
+          <p class="demo-description">
+            Stunning full-width hero carousel with cinematic fade transitions,
+            ideal for landing pages, portfolios, and brand storytelling that
+            demands attention.
+          </p>
+          <div class="demo-features">
+            <span class="demo-feature">Auto-Play</span>
+            <span class="demo-feature">Fade Transitions</span>
+            <span class="demo-feature">Dot Navigation</span>
+            <span class="demo-feature">Mobile Optimized</span>
+          </div>
+        </div>
+
+        <div class="carousel-wrapper">
+          <div class="hero-carousel" id="hero-carousel">
+            <div class="hero-slide">
+              <div>🚀 Revolutionary Innovation</div>
+            </div>
+            <div class="hero-slide">
+              <div>💡 Breakthrough Solutions</div>
+            </div>
+            <div class="hero-slide">
+              <div>⚡ Blazing Performance</div>
+            </div>
+            <div class="hero-slide">
+              <div>🎯 Precision Engineering</div>
+            </div>
+            <div class="hero-slide">
+              <div>🌟 Industry Leading</div>
+            </div>
+          </div>
+          <div class="carousel-dots" id="hero-dots"></div>
+        </div>
+
+        <div class="code-display">
+          <pre><code>const heroCarousel = horizontalLoop("#hero-carousel", {
+          speed: 10,
+          gap: "0px",
+          paused: false,
+          autoplayDelay: 4,
+          dots: ["#hero-dots", { duration: 0.5, ease: "power1.inOut" }],
+          center: true,
+          snap: 1,
+        });</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 2: Product Showcase -->
+    <section class="demo-section">
+      <div class="container">
+        <div class="demo-header">
+          <h2 class="demo-title">E-Commerce Product Gallery</h2>
+          <p class="demo-description">
+            Advanced product carousel with adaptive grid layout, touch gestures,
+            and smooth navigation - perfect for online stores and product
+            catalogs that drive conversions.
+          </p>
+          <div class="demo-features">
+            <span class="demo-feature">Responsive Grid</span>
+            <span class="demo-feature">Touch Gestures</span>
+            <span class="demo-feature">Arrow Navigation</span>
+            <span class="demo-feature">Auto-Play Control</span>
+          </div>
+        </div>
+
+        <div class="carousel-wrapper">
+          <button class="carousel-nav prev" id="product-prev">←</button>
+
+          <div class="carousel-container" id="product-carousel">
+            <div class="product-card">
+              <div class="product-image">📱</div>
+              <div class="product-info">
+                <h3 class="product-title">iPhone 15 Pro Max</h3>
+                <div class="product-price">$1,199</div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image">💻</div>
+              <div class="product-info">
+                <h3 class="product-title">MacBook Pro M3</h3>
+                <div class="product-price">$1,999</div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image">⌚</div>
+              <div class="product-info">
+                <h3 class="product-title">Apple Watch Ultra</h3>
+                <div class="product-price">$799</div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image">🎧</div>
+              <div class="product-info">
+                <h3 class="product-title">AirPods Pro Max</h3>
+                <div class="product-price">$549</div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image">📷</div>
+              <div class="product-info">
+                <h3 class="product-title">Canon R5 Mark II</h3>
+                <div class="product-price">$4,299</div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image">🖥️</div>
+              <div class="product-info">
+                <h3 class="product-title">Studio Display 5K</h3>
+                <div class="product-price">$1,599</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="carousel-nav next" id="product-next">→</button>
+        </div>
+
+        <div class="demo-controls">
+          <button class="control-btn" onclick="productCarousel.pauseAutoplay()">
+            Pause
+          </button>
+          <button class="control-btn" onclick="productCarousel.playAutoplay()">
+            Play
+          </button>
+          <button
+            class="control-btn"
+            onclick="productCarousel.toIndex(0, { duration: 0.5 })"
+          >
+            Go to First
+          </button>
+        </div>
+
+        <div class="code-display">
+          <pre><code>const productCarousel = horizontalLoop("#product-carousel", {
+          responsive: {
+            0: { items: 1 },
+            640: { items: 2 },
+            1024: { items: 3 },
+          },
+          speed: 1.2,
+          gap: "20px",
+          draggable: true,
+          autoplayDelay: 5,
+          prevNav: ["#product-prev", { duration: 0.5, ease: "power1.inOut" }],
+          nextNav: ["#product-next", { duration: 0.5, ease: "power1.inOut" }],
+        });</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 3: Customer Testimonials -->
+    <section class="demo-section">
+      <div class="container">
+        <div class="demo-header">
+          <h2 class="demo-title">Customer Success Stories</h2>
+          <p class="demo-description">
+            Elegant testimonial carousel with centered focus mode and smooth
+            transitions, designed to build trust and showcase authentic customer
+            experiences that convert.
+          </p>
+          <div class="demo-features">
+            <span class="demo-feature">Center Focus</span>
+            <span class="demo-feature">Adaptive Height</span>
+            <span class="demo-feature">Smooth Animations</span>
+            <span class="demo-feature">Trust Building</span>
+          </div>
+        </div>
+
+        <div class="carousel-wrapper">
+          <div class="carousel-container" id="testimonial-carousel">
+            <div class="testimonial-card">
+              <div class="testimonial-quote">
+                "GSAP Carousel transformed our website's user experience. The
+                smooth animations and intuitive controls increased our
+                engagement rates by 40% within the first month."
+              </div>
+              <div class="testimonial-author">
+                <div class="author-avatar">AJ</div>
+                <div class="author-info">
+                  <h4>Alex Johnson</h4>
+                  <p>Head of Digital, TechFlow</p>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
+              <div class="testimonial-quote">
+                "Implementation was surprisingly straightforward, and the
+                performance is exceptional. Our mobile conversion rates improved
+                significantly after switching to this carousel solution."
+              </div>
+              <div class="testimonial-author">
+                <div class="author-avatar">MR</div>
+                <div class="author-info">
+                  <h4>Maria Rodriguez</h4>
+                  <p>E-commerce Director, StyleHub</p>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
+              <div class="testimonial-quote">
+                "The accessibility features and clean code structure made this
+                perfect for our enterprise requirements. Our development team
+                loves working with it."
+              </div>
+              <div class="testimonial-author">
+                <div class="author-avatar">DK</div>
+                <div class="author-info">
+                  <h4>David Kim</h4>
+                  <p>Senior Architect, DataCorp</p>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
+              <div class="testimonial-quote">
+                "From concept to deployment in hours, not days. The infinite
+                scroll is buttery smooth and the customization options are
+                endless. Absolutely game-changing!"
+              </div>
+              <div class="testimonial-author">
+                <div class="author-avatar">EW</div>
+                <div class="author-info">
+                  <h4>Emily Watson</h4>
+                  <p>Creative Lead, BrandLab</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="carousel-dots" id="testimonial-dots"></div>
+        </div>
+
+        <div class="code-display">
+          <pre><code>const   testimonialCarousel = horizontalLoop("#testimonial-carousel", {
+          speed: 1,
+          gap: "30px",
+          center: true,
+          autoplayDelay: 6,
+          dots: ["#testimonial-dots", { duration: 0.5, ease: "power1.inOut" }],
+          snap: 1,
+          updateOnlyOnSettle: true,
+        });</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 4: Logo Marquee -->
+    <section class="demo-section">
+      <div class="container">
+        <div class="demo-header">
+          <h2 class="demo-title">Brand Partnership Showcase</h2>
+          <p class="demo-description">
+            Seamless infinite scrolling carousel perfect for displaying client
+            logos, partner brands, certifications, or awards with professional
+            elegance and visual impact.
+          </p>
+          <div class="demo-features">
+            <span class="demo-feature">Infinite Scroll</span>
+            <span class="demo-feature">Seamless Loop</span>
+            <span class="demo-feature">Hover Pause</span>
+            <span class="demo-feature">Brand Showcase</span>
+          </div>
+        </div>
+
+        <div class="carousel-wrapper" style="padding: 2rem 0">
+          <div class="carousel-container" id="logo-carousel">
+            <div class="logo-item">Google</div>
+            <div class="logo-item">Microsoft</div>
+            <div class="logo-item">Apple</div>
+            <div class="logo-item">Amazon</div>
+            <div class="logo-item">Meta</div>
+            <div class="logo-item">Tesla</div>
+            <div class="logo-item">Netflix</div>
+            <div class="logo-item">Adobe</div>
+            <div class="logo-item">Spotify</div>
+            <div class="logo-item">Uber</div>
+            <div class="logo-item">Airbnb</div>
+            <div class="logo-item">Shopify</div>
+          </div>
+        </div>
+
+        <div class="code-display">
+          <pre><code>const logoCarousel = horizontalLoop("#logo-carousel", {
+          speed: 2,
+          gap: "20px",
+          paused: false,
+          repeat: -1,
+        });
+
+// Pause on hover
+document.querySelector("#logo-carousel").addEventListener("mouseenter", () => {
+  logoCarousel.pause();
+});
+document.querySelector("#logo-carousel").addEventListener("mouseleave", () => {
+  logoCarousel.resume();
+});</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 5: Text Marquee -->
+    <section class="demo-section">
+      <div class="container">
+        <div class="demo-header">
+          <h2 class="demo-title">Dynamic News Ticker</h2>
+          <p class="demo-description">
+            High-impact scrolling text marquee for breaking news, promotional
+            announcements, live updates, or urgent notifications that capture
+            immediate attention.
+          </p>
+          <div class="demo-features">
+            <span class="demo-feature">Variable Speed</span>
+            <span class="demo-feature">Seamless Loop</span>
+            <span class="demo-feature">Direction Control</span>
+            <span class="demo-feature">Live Updates</span>
+          </div>
+        </div>
+
+        <div class="text-marquee" id="text-marquee">
+          <div class="marquee-item">🚀 Version 2.0 Now Live</div>
+          <div class="marquee-item">⚡ 300% Faster Performance</div>
+          <div class="marquee-item">📱 Mobile-First Responsive Design</div>
+          <div class="marquee-item">♿ WCAG 2.1 AA Compliant</div>
+          <div class="marquee-item">🎯 Enterprise Ready</div>
+          <div class="marquee-item">💯 Zero Dependencies</div>
+          <div class="marquee-item">🔧 Fully Customizable API</div>
+        </div>
+
+        <div class="demo-controls">
+          <button
+            class="control-btn"
+            onclick="textMarquee.reversed()? textMarquee.play():textMarquee.reverse()"
+          >
+            Reverse
+          </button>
+          <button class="control-btn" onclick="textMarquee.timeScale(0.5)">
+            Slow
+          </button>
+          <button class="control-btn" onclick="textMarquee.timeScale(1)">
+            Normal
+          </button>
+          <button class="control-btn" onclick="textMarquee.timeScale(2)">
+            Fast
+          </button>
+        </div>
+
+        <div class="code-display">
+          <pre><code>const  textMarquee = horizontalLoop("#text-marquee", {
+          speed: 3,
+          gap: "0px",
+          paused: false,
+          repeat: -1,
+          reversed: true,
+        });</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Transform Your Web Experience Today</h2>
+          <p>
+            Join thousands of developers who have elevated their projects with
+            GSAP Carousel. Get production-ready components that users love and
+            clients approve.
+          </p>
+          <div class="cta-buttons">
+            <button
+              class="btn btn-primary btn-large"
+              onclick="downloadCarousel()"
+            >
+              <span>📥</span> Start Building Now
+            </button>
+            <a href="docs.html" class="btn btn-secondary btn-large">
+              <span>📚</span> Explore Documentation
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>GSAP Carousel</h3>
+            <p>
+              Professional-grade carousel components powered by GSAP for modern
+              web experiences.
+            </p>
+          </div>
+          <div class="footer-section">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="docs.html">API Documentation</a></li>
+              <li><a href="demos.html">Live Examples</a></li>
+              <li>
+                <a
+                  href="https://github.com/sagarsantra1/GSAPCarousel"
+                  target="_blank"
+                  >Source Code</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Community</h4>
+            <ul>
+              <li>
+                <a
+                  href="https://github.com/sagarsantra1/GSAPCarousel/issues"
+                  target="_blank"
+                  >Report Issues</a
+                >
+              </li>
+              <li>
+                <a href="https://gsap.com/docs/" target="_blank"
+                  >GSAP Resources</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 GSAP Carousel. Open source under MIT License.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="./js/script.js"></script>
+    <!-- Required -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <!-- Optional: For drag functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Draggable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/InertiaPlugin.min.js"></script>
+    <!-- Carousel Script -->
+    <script src="../dist/gsap-carousel.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Global carousel instances for control access
+        let heroCarousel,
+          productCarousel,
+          testimonialCarousel,
+          logoCarousel,
+          textMarquee;
+
+        // Demo 1: Hero Image Carousel
+        heroCarousel = horizontalLoop("#hero-carousel", {
+          speed: 10,
+          gap: "0px",
+          paused: false,
+          autoplayDelay: 4,
+          dots: ["#hero-dots", { duration: 0.5, ease: "power1.inOut" }],
+          center: true,
+          snap: 1,
+        });
+
+        // Demo 2: Product Showcase
+        productCarousel = horizontalLoop("#product-carousel", {
+          responsive: {
+            0: { items: 1 },
+            640: { items: 2 },
+            1024: { items: 3 },
+          },
+          speed: 1.2,
+          gap: "20px",
+          draggable: true,
+          autoplayDelay: 5,
+          prevNav: ["#product-prev", { duration: 0.5, ease: "power1.inOut" }],
+          nextNav: ["#product-next", { duration: 0.5, ease: "power1.inOut" }],
+        });
+
+        // Demo 3: Customer Testimonials
+        testimonialCarousel = horizontalLoop("#testimonial-carousel", {
+          speed: 1,
+          gap: "30px",
+          center: true,
+          autoplayDelay: 6,
+          dots: ["#testimonial-dots", { duration: 0.5, ease: "power1.inOut" }],
+          snap: 1,
+          updateOnlyOnSettle: true,
+        });
+
+        // Demo 4: Logo Marquee
+        logoCarousel = horizontalLoop("#logo-carousel", {
+          speed: 2,
+          gap: "20px",
+          paused: false,
+          repeat: -1,
+        });
+
+        // Pause logo carousel on hover
+        const logoContainer = document.querySelector("#logo-carousel");
+        logoContainer.addEventListener("mouseenter", () => {
+          logoCarousel.pause();
+        });
+        logoContainer.addEventListener("mouseleave", () => {
+          logoCarousel.resume();
+        });
+
+        // Demo 5: Text Marquee
+        textMarquee = horizontalLoop("#text-marquee", {
+          speed: 3,
+          gap: "0px",
+          paused: false,
+          repeat: -1,
+          reversed: true,
+        });
+
+        // Make carousels globally accessible for demo controls
+        window.heroCarousel = heroCarousel;
+        window.productCarousel = productCarousel;
+        window.testimonialCarousel = testimonialCarousel;
+        window.logoCarousel = logoCarousel;
+        window.textMarquee = textMarquee;
+      });
+    </script>
+  </body>
+</html>
